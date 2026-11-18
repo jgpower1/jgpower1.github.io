@@ -2377,7 +2377,7 @@ const P = {
       pin: ['ring', many ? '<b class="o">' + where + '</b>이나 화면의 <b class="r">빨간 점선 원</b>을 ' + v : '화면의 <b class="r">빨간 점선 원</b>을 ' + v + (twin ? ' · ' + where + '도 돼요' : '')],
       pick: ['ring', many ? '알맞은 것을 <b class="o">' + where + '</b>에서 골라 ' + v : '알맞은 <b class="r">빨간 점선 원</b>' + (twin ? '(또는 ' + where + ')' : '') + '을 골라 ' + v],
       chip: ['chip', '알맞은 값을 고른 뒤 <b class="o">주황 버튼</b>을 ' + v],
-      tap: ['tap', '<b class="o">주황 버튼</b>' + (Pins.list.length ? '(또는 빨간 점선 원)' : '') + '을 여러 번 ' + v + ' · 꾹 눌러도 돼요'],
+      tap: ['tap', '<b class="o">주황 버튼</b>' + (Pins.list.length ? '(또는 빨간 점선 원)' : '') + '을 한 번만 ' + v + ' · 끝까지 자동으로 진행돼요'],
       btn: ['btn', '<b class="o">버튼</b>을 ' + v],
       next: ['next', '<b class="g">초록 버튼</b>을 ' + v],
       wait: ['wait', '조리 중이에요 · 잠깐 지켜봐 주세요']
@@ -2445,21 +2445,21 @@ async function rubSeries(o) {
     Coach.arm({ key: o.key, quiz: false, hint: o.hint || ['화면을 누른 채 좌우로 문질러요!'] });
   });
 }
-async function tapSeries(o) {
+async function tapSeries(o) {                                  // 11/18: 여러 번 누르던 동작 → 한 번만 누르면 끝까지 자동으로 진행 (연출 · 점수 · 진행 표시는 그대로)
   await P.ready();
   return new Promise(res => {
-    let k = 0, pin = null, held = false, timer = 0, rep = 0;
+    let k = 0, pin = null, run = false;
     const btn = document.createElement('button'); btn.className = 'btn primary tapbtn'; btn.innerHTML = '<span class="tl">' + o.label + '</span><em class="cnt">0/' + o.n + '</em>'; $('sCtrl').appendChild(btn);
     const cnt = btn.querySelector('.cnt');
-    const done = () => { clearTimeout(timer); clearInterval(rep); Coach.disarm(); if (pin) Pins.remove(pin); btn.remove(); res(); };
-    const hit = () => { if (k >= o.n) return; k++; cnt.textContent = k + '/' + o.n; o.onTap(k, o.n); if (k >= o.n) done(); else Coach.touch(); };
-    if (o.pin) pin = Pins.add(Object.assign({}, o.pin, { onTap: hit, panel: false }));
-    Coach.arm({ how: 'tap', key: o.key, quiz: false, point: o.pin ? [o.pin.id] : null, els: [btn], hint: o.hint || ['손가락이 가리키는 곳을 톡톡 눌러요. 꾹 누르고 있어도 돼요!'] });
-    btn.addEventListener('click', () => { Aud.init(); if (held) { held = false; return; } hit(); });
-    if (o.hold) {
-      btn.addEventListener('pointerdown', () => { held = false; timer = setTimeout(() => { held = true; Aud.init(); hit(); rep = setInterval(hit, 260); }, 380); });
-      ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, () => { clearTimeout(timer); clearInterval(rep); }));
-    }
+    const go = async () => {
+      if (run) return; run = true; Aud.init(); btn.disabled = true; btn.classList.add('run');
+      if (pin) { Pins.remove(pin); pin = null; } Coach.disarm(); P.how('wait');
+      while (k < o.n) { k++; cnt.textContent = k + '/' + o.n; o.onTap(k, o.n); if (k < o.n) await wait(o.gap || .5); }
+      await wait(.2); btn.remove(); res();
+    };
+    if (o.pin) pin = Pins.add(Object.assign({}, o.pin, { onTap: go, panel: false }));
+    Coach.arm({ how: 'tap', key: o.key, quiz: false, point: o.pin ? [o.pin.id] : null, els: [btn], hint: o.hint || ['손가락이 가리키는 곳을 한 번만 누르면 끝까지 진행돼요!'] });
+    btn.addEventListener('click', go);
   });
 }
 /* choose among 3D pins; resolves with the picked id, pins removed.
@@ -2768,7 +2768,7 @@ async function step0() {
   await Promise.all(s.bagPieces.map((p, i) => wait(i * .09).then(() => arcMove(p, tg[i], .55, .55, ease.io, { x: (r() - .5) * .6, y: r() * TAU, z: (r() - .5) * .6 }))));
   sfx.thud(); setFrac(.4); await wait(.2);
   // --- shake the water out
-  P.phase('③ <b>체</b>를 톡톡! 물기 털기'); const met = P.meter('물기 제거율'); const cw = wpos(s.colander); const cx0 = s.colander.position.x;
+  P.phase('③ <b>체</b>를 톡톡 털어 물기 빼기'); const met = P.meter('물기 제거율'); const cw = wpos(s.colander); const cx0 = s.colander.position.x;
   await tapSeries({
     n: 6, label: '💦 물기 털기 탭!', hold: true, pin: { id: 'shake', label: '물기 털기', icon: '💦', obj: s.colander, off: [0, .52, 0] },
     onTap: (k, n) => {
@@ -2857,7 +2857,7 @@ async function step2() {
   P.phase('④ 부위별로 들었다 놓으며 <b>배터액 묻히기</b>'); const met = P.meter('버무림'); const mitt = s.mitt; mitt.visible = true;
   let ang = 0;
   await tapSeries({
-    n: 7, label: '🥣 버무리기 탭!', hold: true, key: 's2mix', hint: ['버튼을 톡톡 눌러요. 부위별로 들었다가 다시 배터액에 묻혀요!'],
+    n: 7, label: '🥣 버무리기 탭!', hold: true, key: 's2mix', hint: ['버튼을 한 번 누르면 부위별로 들었다가 다시 배터액에 묻혀요!'],
     onTap: (k, n) => {
       /* 한 번 누를 때마다 한 부위(2조각)를 손으로 들어 올렸다가 배터액에 다시 묻힌다 */
       sfx.tap(); sfx.whoosh(); const kind = TYPES[(k - 1) % TYPES.length]; let grp = s.pcs.filter(p => p.userData.kind === kind); if (!grp.length) grp = [s.pcs[(k - 1) % s.pcs.length]];
@@ -2975,7 +2975,7 @@ async function step4() {
   }
   good(300, { obj: s.oil }); S.fry.target = 30; setFrac(.2); P.fb(''); P.phase('⏱ <b>30초</b>까지 기다리는 중…'); await waitFry(30); sfx.ding();
   // --- 흔들기: 검은 장갑 낀 손이 뜰채로 조각을 떠서 기름 위로 살짝 들고 흔든 뒤 다시 넣는다 → 붙어 있던 조각이 하나씩 떨어진다 (교육 영상 동작)
-  P.phase('② <b>뜰채</b>로 조각을 떠서 흔들어 떼어요 (톡톡!)'); const met = P.meter('분리');
+  P.phase('② <b>뜰채</b>로 조각을 떠서 흔들어 떼어요'); const met = P.meter('분리');
   const L = s.ladle || (s.ladle = buildLadle()); if (L.parent !== s.g) s.g.add(L);
   const H = s.hand, hPar = H.parent, hPos = H.position.clone(), hRot = H.rotation.clone();
   L.add(H); H.position.copy(L.userData.handAt); H.rotation.set(-L.userData.tilt, 0, -.3); H.userData.grip(1); H.visible = true; L.visible = true;
@@ -3063,8 +3063,7 @@ async function legWork(s, e, no, total) {
     const dots = P.dots(4); let pokes = 0, fin = null, finP = null; const px = [.03, .1, .06, .13];
     while (pokes < 4) {
       const spec = { id: 'poke', label: '찌르기', icon: '🔪', obj: p, off: [.34, .02, .16] };
-      const r = fin ? await Promise.race([choosePin([spec], { key: 'poke', els: [fin] }), finP]) : await choosePin([spec], { key: 'poke' });
-      if (r === 'fin') { Pins.clear(); Coach.disarm(); break; }
+      if (pokes === 0) { await choosePin([spec], { key: 'poke', hint: ['찌르기를 한 번만 누르면 앞뒤로 찔러 크랙킹해요!'] }); P.how('wait'); } else await wait(.3);   // 한 번 누르면 4회 자동
       pokes++; dots.set(pokes); P.fb(''); P.phase(pokeSay(pokes));
       const up = pokes <= 2 ? 1 : -1, mx = px[pokes - 1], mz = (pokes % 2 ? -1 : 1) * .016, a2 = surf(mx, up * legR(mx), mz);
       kn.rotation.set(0, 0, -Math.PI / 2); kn.position.set(a2.x, a2.y + .8, a2.z); sfx.whoosh();
@@ -3076,10 +3075,6 @@ async function legWork(s, e, no, total) {
       if (pokes === 2) {
         P.fb('🔄 뒷면도 찔러요', 'tip'); sfx.whoosh();
         await anim(.6, k => { p.rotation.x = lerp(0, Math.PI, k); p.position.y = Math.sin(k * Math.PI) * .09; }); p.position.y = 0;
-      }
-      if (pokes === 3 && !fin) {
-        fin = document.createElement('button'); fin.className = 'btn good'; fin.textContent = '크랙킹 완료 ✔ (3회)'; $('sCtrl').appendChild(fin);
-        finP = new Promise(res2 => fin.addEventListener('click', () => { Aud.init(); sfx.tap(); res2('fin'); }));
       }
     }
     if (fin) fin.remove();
@@ -3160,7 +3155,7 @@ async function step6() {
     await P.askWrong();
   }
   good(300, { obj: s.rack }); P.fb(''); s.setTimer(90, '기름떨이'); setFrac(.2);
-  P.phase('② <b>기름떨이망</b>을 톡톡!'); const met = P.meter('남은 시간'); met.set(0, '01:30'); let remain = 90; const rw = wpos(s.rackPcs);
+  P.phase('② <b>기름떨이망</b>을 털어 기름 빼기'); const met = P.meter('남은 시간'); met.set(0, '01:30'); let remain = 90; const rw = wpos(s.rackPcs);
   await tapSeries({
     n: 6, label: '💧 기름 털기 탭!', hold: true, pin: { id: 'drain', label: '기름 털기', icon: '💧', obj: s.rack, off: [0, .55, 0] },
     onTap: (k, n) => {
