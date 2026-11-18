@@ -3054,7 +3054,9 @@ async function legWork(s, e, no, total) {
     fx.drops(bw.x, bw.y, bw.z, 10, 0xd24a5a, .2); sfx.whoosh();
     const k3 = kAt(.13); await anim(.4, k => { kn.position.lerpVectors(k1, k3, k); kn.position.y += .08 * k; });
     award(60, { obj: p, sm: true }); setFrac(.15); kn.visible = false; kn.rotation.order = 'XYZ'; await flyTo('s3work', 3, .6);
-    P.fb('🩸 혈작업 완료! 이제 나이프로 다리를 앞뒤로 3~4회 찔러 크랙킹해요.', 'ok'); const pokeSay = n => '⑤ 다리 ' + no + '/' + total + ' · <b>크랙킹</b>: 나이프로 앞뒤 <b>3~4회</b> 찔러요! 🔪 (' + n + '/4)'; P.phase(pokeSay(0));
+    // 크랙킹은 이전 버전 그대로: 나이프를 세워 다리 위에 대고, 위아래로 찔러요
+    { const a = surf(.2, legR(.2), 0); kn.rotation.set(0, 0, -Math.PI / 2); kn.position.set(a.x, a.y + .36, a.z); kn.visible = true; }
+    P.fb('🩸 혈작업 완료! 이제 나이프로 다리를 앞뒤로 3~4회 찔러 크랙킹해요.', 'ok'); const pokeSay = n => '⑤ 다리 ' + no + '/' + total + ' · <b>나이프</b>로 앞뒤 <b>3~4회</b> 찔러요! 🔪 (' + n + '/4)'; P.phase(pokeSay(0));
     // --- 크랙킹: 4 pokes, 2 on the front, flip, 2 on the back (3 is enough — a finish button appears)
     const dots = P.dots(4); let pokes = 0, fin = null, finP = null; const px = [.03, .1, .06, .13];
     while (pokes < 4) {
