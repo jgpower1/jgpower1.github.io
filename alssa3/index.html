@@ -3032,15 +3032,29 @@ async function legWork(s, e, no, total) {
   const drip = setInterval(() => { const q = W(w); fx.oilDrops(q.x + rnd(-.06, .06), q.y - .06, q.z + rnd(-.03, .03), 2); }, 230 * TS);
   await anim(.85, k => { T.position.lerpVectors(s0, work, k); T.position.y += Math.sin(k * Math.PI) * .05; });
   try {
-    // --- 혈작업: a knife slit near the thick end
-    kn.visible = true; kn.rotation.set(0, 0, -Math.PI / 2);
-    const sx = .2, a = surf(sx, legR(sx), 0); kn.position.set(a.x, a.y + .78, a.z);
-    await anim(.5, k => kn.position.y = lerp(a.y + .78, a.y + .36, k));
-    sfx.poke(); await anim(.25, k => { kn.position.y = a.y + .36 - .1 * Math.sin(k * Math.PI); }, ease.lin);
-    const bw = wsurf(sx, legR(sx), 0); fx.drops(bw.x, bw.y + .02, bw.z, 12, 0xd24a5a, .25);
-    const slit = mk(new THREE.BoxGeometry(.014, .008, .13), M.red, sx, legR(sx) + .002, 0, { cast: false }); p.add(slit);
-    await wait(.25);
-    P.fb('🩸 혈작업 완료! 이제 나이프로 다리를 앞뒤로 3~4회 찔러 크랙킹해요.', 'ok'); const pokeSay = n => '④ 다리 ' + no + '/' + total + ' · <b>나이프</b>로 앞뒤 <b>3~4회</b> 찔러요! 🔪 (' + n + '/4)'; P.phase(pokeSay(0));
+    // --- 혈작업 (11/18 영상 기준): 집게로 다리를 든 채, 나이프를 두꺼운 끝에서 다리 가로(긴 방향)로 쭉 넣었다가 빼요
+    const END = .262, a0 = surf(END, 0, 0), axd = surf(END + 1, 0, 0).sub(a0).normalize();       // 다리 끝 · 다리의 가로 방향(두꺼운 끝 쪽)
+    const kAt = d => a0.clone().addScaledVector(axd, d + .37);                                       // 칼끝이 다리 끝에서 d만큼 바깥(−는 안쪽)일 때 칼 위치
+    const deep = a0.distanceTo(surf(.04, 0, 0));                                                     // 뼈를 따라 집게 근처까지
+    const ROLL = Math.PI / 2; kn.visible = true; kn.rotation.order = 'YZX'; kn.rotation.set(ROLL, Math.atan2(axd.z, -axd.x), Math.asin(clamp(-axd.y, -1, 1)));   // 칼끝은 다리 쪽, 빨간 손잡이는 오른쪽, 날은 눕혀서 위에서도 잘 보이게
+    const k0 = kAt(.11), k1 = kAt(.012), k2 = kAt(-deep); kn.position.copy(k0); kn.position.y += .1;
+    const cL = surf(-.12, 0, 0), cR = kAt(.07).addScaledVector(axd, .19), cM = cL.clone().add(cR).multiplyScalar(.5), cw = cL.distanceTo(cR);   // 다리 + 칼이 한 화면에 크게
+    const PT = window.__port || { dz: -.3, dy: -.05 };                                                // 플레이 중 구도 보정(dz · dy)을 되돌려 다리 + 칼이 화면 가운데에 오게
+    SHOTS.s3blood = { x: cM.x, y: cM.y - PT.dy, z: cM.z - PT.dz, span: cw * 1.08 + .06, vspan: cw * .7 + .08, pitch: 36, yaw: 0 }; const fly = flyTo('s3blood', 3, .7);
+    P.phase('④ 다리 ' + no + '/' + total + ' · <b>혈작업</b>: 나이프를 다리 <b>가로</b>로 쭉 넣었다 빼요 🔪'); sfx.whoosh();
+    await anim(.5, k => { kn.position.lerpVectors(k0, k1, k); kn.position.y += .1 * (1 - k); }); await fly;
+    const tgt = mk(new THREE.SphereGeometry(.05, 8, 6), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }), END, 0, 0, { cast: false }); p.add(tgt);
+    await choosePin([{ id: 'blood', label: '칼 넣기', icon: '🔪', obj: tgt, off: [0, .1, 0] }], { key: 'blood', hint: ['다리 끝의 빨간 점선(또는 아래 버튼)을 눌러 칼을 넣어요!'] });
+    p.remove(tgt); P.fb('');
+    sfx.whoosh(); await anim(1.2, k => kn.position.lerpVectors(k1, k2, k), ease.io);                  // 쭈욱 — 다리 가로로 깊게
+    sfx.poke(); await anim(.35, k => { kn.rotation.x = ROLL + Math.sin(k * Math.PI * 2) * .14; }, ease.lin); kn.rotation.x = ROLL;
+    const bw = wsurf(END, 0, 0); fx.drops(bw.x, bw.y, bw.z, 8, 0xd24a5a, .12);
+    const hole = mk(new THREE.SphereGeometry(.017, 12, 8), M.red, END - .002, 0, 0, { cast: false }); hole.scale.set(.4, 1, 1); p.add(hole);
+    await anim(.9, k => kn.position.lerpVectors(k2, k1, k), ease.io);                                // 다시 쭉 빼기
+    fx.drops(bw.x, bw.y, bw.z, 10, 0xd24a5a, .2); sfx.whoosh();
+    const k3 = kAt(.13); await anim(.4, k => { kn.position.lerpVectors(k1, k3, k); kn.position.y += .08 * k; });
+    award(60, { obj: p, sm: true }); setFrac(.15); kn.visible = false; kn.rotation.order = 'XYZ'; await flyTo('s3work', 3, .6);
+    P.fb('🩸 혈작업 완료! 이제 나이프로 다리를 앞뒤로 3~4회 찔러 크랙킹해요.', 'ok'); const pokeSay = n => '⑤ 다리 ' + no + '/' + total + ' · <b>크랙킹</b>: 나이프로 앞뒤 <b>3~4회</b> 찔러요! 🔪 (' + n + '/4)'; P.phase(pokeSay(0));
     // --- 크랙킹: 4 pokes, 2 on the front, flip, 2 on the back (3 is enough — a finish button appears)
     const dots = P.dots(4); let pokes = 0, fin = null, finP = null; const px = [.03, .1, .06, .13];
     while (pokes < 4) {
@@ -3067,7 +3081,7 @@ async function legWork(s, e, no, total) {
     if (fin) fin.remove();
     good(250, { obj: p }); kn.visible = false; await wait(.3);
     // --- back into the oil
-    P.phase('⑤ 다리를 다시 <b>후라이어</b>에'); P.fb('');
+    P.phase('⑥ 다리를 다시 <b>후라이어</b>에'); P.fb('');
     const back = slotPos(e.id, true), bl = new THREE.Vector3(back.x, FRY_Y + .5, back.z), s1 = T.position.clone();
     sfx.whoosh(); const pq = p.rotation.x;
     await anim(.7, k => { T.position.lerpVectors(s1, bl, k); T.position.y += Math.sin(k * Math.PI) * .06; p.rotation.x = lerp(pq, Math.PI * 2, k); });
@@ -3103,14 +3117,14 @@ async function step5() {
   const legs = s.fryPcs.filter(e => e.type === 'leg');
   for (let li = 0; li < legs.length; li++) {
     if (li > 0) {
-      await flyTo('s3pick', 3, .9); P.phase('⑤ 남은 <b>다리</b>도 건지기'); P.clear(); P.fb('');
+      await flyTo('s3pick', 3, .9); P.phase('⑦ 남은 <b>다리</b>도 건지기'); P.clear(); P.fb('');
       await choosePin([{ id: 'leg2', label: '다리 건지기', icon: '🥢', obj: legs[li].w, off: [0, .3, 0] }]);
     }
     await legWork(s, legs[li], li + 1, legs.length);
   }
   await wait(.3);
   // --- back to the oil until 10 minutes
-  P.phase('⑥ <b>🔥 조리중</b>을 눌러 <b>10분</b>까지'); P.clear(); P.fb(''); await flyTo('s3fry', 3, 1.3);
+  P.phase('⑧ <b>🔥 조리중</b>을 눌러 <b>10분</b>까지'); P.clear(); P.fb(''); await flyTo('s3fry', 3, 1.3);
   S.fry.level = .85; Aud.sizzle(.85);
   await cookTap(300, 600, 'cook2', .4);
   await waitFry(600); sfx.ding(); sfx.ding(); P.fb('⏱ 10분 완료! 노릇노릇 바삭하게 튀겨졌어요. 후라이어에서 건져내요.', 'ok');
