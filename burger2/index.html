@@ -1229,11 +1229,11 @@ function updateActions(){const inBuild=G.phase==='build';$('#btn-close').hidden=
   $('#btn-reset').hidden=G.mode!=='practice';$('#btn-card').hidden=false;}
 function showPanel(which){$('#panel-tools').hidden=which!=='tools';$('#panel-wrap').hidden=which!=='wrap';$('#panel-bowl').hidden=which!=='bowl';}
 function updateHud(){
-  if(G.mode==='practice'){$('#scr-game').classList.add('practice');$('#scr-game').classList.remove('tycoon');$('#hud-day').textContent='연습 모드';$('#hud-sub').textContent=G.build?BURGERS[G.build.key].name:'';$('#hud-served').hidden=true;$('#hud-score').hidden=true;$('#btn-guide').hidden=false;
+  if(G.mode==='practice'){$('#scr-game').classList.add('practice');$('#scr-game').classList.remove('tycoon');$('#hud-day').textContent='연습 모드';$('#hud-sub').textContent=G.build?BURGERS[G.build.key].name:'';$('#hud-served').hidden=true;$('#hud-score').hidden=false;$('#btn-guide').hidden=false;
     $('#btn-guide').textContent=G.guide?'가이드 ON':'가이드 OFF';$('#btn-guide').classList.toggle('on',G.guide);return;}
   $('#btn-guide').hidden=true;$('#hud-served').hidden=false;$('#hud-score').hidden=false;
   $('#scr-game').classList.add('tycoon');$('#scr-game').classList.remove('practice');$('#hud-day').textContent='DAY '+G.day.n;$('#hud-sub').textContent=G.day.title;
-  $('#hud-served').textContent=`서빙 ${G.dayLog.length}/${G.dayTotal}`;$('#hud-score').textContent=`${G.score}점`;}
+  $('#hud-served').textContent=`서빙 ${G.dayLog.length}/${G.dayTotal}`;$('#hud-score').textContent=`점수 ${dayScore(true)}`;}
 function moodFor(c){const f=c.pat/c.max;return f>.5?'🙂':f>.25?'😐':'😠';}
 function renderRail(newC){const rail=$('#rail');rail.innerHTML='';
   if(G.mode==='practice'){const B=BURGERS[G.build.key];rail.innerHTML=`<div class="ticket active"><div class="tk-top"><span>연습 주문</span><span class="tk-stamp">조리중</span></div><div class="tk-who">🎓</div><div class="tk-menu">${B.name}</div></div>`;return;}
@@ -1447,8 +1447,8 @@ function afterWrapStep(){const ref=G.wrap,exp=wrapExpected();
 /* ================= scoring / results ================= */
 function scoreBuild(b,patFrac){let P=0,Gd=0,bad=0;b.results.forEach(r=>{if(r.grade==='P')P++;else if(r.grade==='G')Gd++;else bad++;});
   const m=b.mistakes.length,measured=b.results.filter(r=>ING[r.id].kind==='sauce'||ING[r.id].kind==='pile'||ING[r.id].kind==='shake'),mP=measured.filter(r=>r.grade==='P').length;
-  let pts=100+P*12+Gd*6-bad*20-m*12-(b.hints?10:0);const speed=patFrac!=null?Math.round(40*patFrac):0;pts+=speed;pts=Math.max(10,pts);
-  let stars=1;if(bad===0&&m===0&&!b.hints&&mP>=Math.ceil(measured.length*.6))stars=3;else if(bad<=1&&m<=2)stars=2;
+  const pts=Math.max(0,100-m*10-bad*10-Gd*5-(b.hints?10:0)),speed=0;            // 100점 만점: 실수 · 과다 −10, 조금 벗어남 −5, 빌드카드 −10
+  const stars=pts>=90?3:pts>=70?2:1;
   return{pts,stars,P,G:Gd,bad,m,speed,measured};}
 function starsHTML(n){return `<div class="stars" aria-label="별 ${n}개">${[1,2,3].map(i=>i<=n?'★':'<span class="off">★</span>').join('')}</div>`;}
 function measureTable(b){const rows=b.results.filter(r=>r.grams!=null&&ING[r.id].kind!=='count').map(r=>{const ing=ING[r.id];const lbl={P:'PERFECT',G:'GOOD',O:'과다',U:'부족'}[r.grade];return `<tr><td>${sideName(r.side)} · ${ing.name}${r.face?` (${r.face==='front'?'앞면':'뒷면'})`:''}</td><td class="n"><b class="gram">${ing.target}g</b></td><td class="n"><b>${f1(r.grams)}g</b></td><td><span class="badge ${r.grade}">${lbl}</span></td></tr>`;}).join('');
@@ -1465,7 +1465,7 @@ function showCompleteModal(){const b=G.build,B=BURGERS[b.key];
   <div class="m-box">${stackSVG(b.key,{grades:b.results})}</div>
   <div class="m-btns"><button class="btn btn-primary" data-act="go-wrap" data-focus>랩핑하러 가기 →</button></div>`);}
 function showBuildCard(){const b=G.build;if(!b)return;const B=BURGERS[b.key];let note='';
-  if(G.mode==='tycoon'&&!(G.day&&G.day.guide)){if(!b.hints){b.hints=1;note='<p style="color:#C9302C;font-weight:800">힌트 사용 — ★3 불가</p>';}}
+  if(G.mode==='tycoon'&&!(G.day&&G.day.guide)){if(!b.hints){b.hints=1;note='<p style="color:#C9302C;font-weight:800">빌드카드 사용 — 10점 감점</p>';}}
   openModal(`<h2>${B.name}</h2>${note}<div class="m-box">${stackSVG(b.key)}</div>
   <div class="m-box"><ol class="wsteps">${wrapStepsHTML()}</ol></div>
   <div class="m-btns"><button class="btn btn-primary" data-act="close" data-focus>계속 만들기</button></div>`);}
@@ -1476,24 +1476,29 @@ function dayIntro(){const D=G.day;
   <div class="m-meta">주문 ${G.dayTotal}건 · 인내심 ${D.patience}초</div>
   <div class="m-btns"><button class="btn btn-primary" data-act="start-day" data-focus>영업 시작</button><button class="btn btn-ghost" data-act="to-title">처음 화면</button></div>`);}
 function showOrderResult(c,sc){const b=G.build,B=BURGERS[b.key];
-  openModal(`${starsHTML(sc.stars)}<h2>+${sc.pts}점</h2><p style="font-size:16px">${c.face} ${pick(REACT[sc.stars])}</p>${photoHTML(B,true)}
+  openModal(`${starsHTML(sc.stars)}<h2>${sc.pts}점 <small style="font-size:16px;color:#5D554E">/ 100</small></h2><p style="font-size:16px">${c.face} ${pick(REACT[sc.stars])}</p>${deductHTML(sc,b)}${photoHTML(B,true)}
   ${mistakesHTML(b)}
   <div class="m-btns"><button class="btn btn-primary" data-act="next-order" data-focus>${G.queue.length||G.pending.length?'다음 주문 받기 →':'영업 마감 보고 →'}</button></div>`);}
 function showPracticeResult(sc){const b=G.build,B=BURGERS[b.key];const title=sc.stars===3?'완벽한 빌드!':sc.stars===2?'좋아요, 거의 다 왔어요!':'한 번 더 연습해봐요';
-  openModal(`${starsHTML(sc.stars)}<h2>${title}</h2>${photoHTML(B,true)}
+  openModal(`${starsHTML(sc.stars)}<h2>${title}</h2><p style="margin:0;font-size:22px;font-weight:900;color:#1E1E1E">${sc.pts}점 <span style="font-size:14px;color:#5D554E">/ 100점 만점</span></p>${deductHTML(sc,b)}${photoHTML(B,true)}
   ${mistakesHTML(b)}
   <div class="m-btns"><button class="btn btn-primary" data-act="practice-retry" data-focus>같은 버거 다시</button><button class="btn btn-ghost" data-act="practice-other">다른 버거 연습</button><button class="btn btn-ghost" data-act="to-title">처음 화면</button></div>`);}
-function gradeOf(avg,lost){if(avg>=2.7&&lost===0)return'S';if(avg>=2.2&&lost<=1)return'A';if(avg>=1.6)return'B';return'C';}
+function gradeOf(pt){return pt>=90?'S':pt>=80?'A':pt>=50?'B':'C';}                // 100점 만점 등급 (알싹킹 · 뿌링클과 같은 기준)
+function dayScore(withLive){const log=G.dayLog||[],lost=(G.lost||[]).length;let sum=log.reduce((a,r)=>a+r.pts,0),n=log.length+lost;
+  if(withLive&&G.build&&G.build.cust&&G.phase!=='done'){sum+=scoreBuild(G.build,null).pts;n++;}return n?Math.round(sum/n):100;}
+function deductHTML(sc,b){const p=[];if(sc.m)p.push(`실수 ${sc.m}회 −${sc.m*10}`);if(sc.bad)p.push(`계량 과다 ${sc.bad}회 −${sc.bad*10}`);if(sc.G)p.push(`계량 조금 벗어남 ${sc.G}회 −${sc.G*5}`);if(b.hints)p.push('빌드카드 −10');
+  return p.length?`<p class="m-meta">감점: ${p.join(' · ')}</p>`:'<p class="m-meta" style="color:#23864A">감점 없음 👍</p>';}
 const GRADE_RANK={S:4,A:3,B:2,C:1};
 function endDay(){if(!G.running)return;G.running=false;G.build=null;resetStationForBuild();renderRail();const D=G.day,log=G.dayLog,served=log.length,lost=G.lost.length;
-  const avg=served?log.reduce((s,r)=>s+r.stars,0)/(served+lost):0;const gr=gradeOf(avg,lost);
-  try{if(window.__bhcGate&&window.__bhcGate.score)window.__bhcGate.score(avg/3*100,gr);}catch(e){}
+  const dpt=dayScore(false),gr=gradeOf(dpt),misN=log.reduce((a,r)=>a+r.mistakes.length,0);
+  try{if(window.__bhcGate&&window.__bhcGate.score)window.__bhcGate.score(dpt,gr);}catch(e){}
+  G.save.bestPt=G.save.bestPt||{};if(!(G.save.bestPt[D.n]>=dpt))G.save.bestPt[D.n]=dpt;
   const allRes=log.flatMap(r=>r.results).filter(r=>r.grams!=null&&ING[r.id].kind!=='count');const pRate=allRes.length?Math.round(allRes.filter(r=>r.grade==='P').length/allRes.length*100):0;
   const counts={};log.forEach(r=>{r.mistakes.forEach(m=>{counts[m.text]=(counts[m.text]||0)+1;});r.results.forEach(x=>{if(x.grade==='O'){const k=`${ING[x.id].name} 과다 (기준 ${ING[x.id].target}g)`;counts[k]=(counts[k]||0)+1;}});});
   const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,4);
   const prev=G.save.best[D.n];if(!prev||GRADE_RANK[gr]>GRADE_RANK[prev])G.save.best[D.n]=gr;G.save.unlocked=Math.max(G.save.unlocked,Math.min(5,D.n+1));if(D.n===5)G.save.cleared=true;persist();
-  openModal(`<div class="m-eyebrow">DAY ${D.n} 영업 마감</div><div style="display:flex;align-items:center;gap:16px"><div class="grade">${gr}</div><div><h2 style="margin:0">${D.title} 마감!</h2><p style="margin:2px 0">총 ${G.score}점</p></div></div>
-  <div class="kpis"><div class="kpi"><b>${served}</b><span>서빙</span></div><div class="kpi"><b>${lost}</b><span>놓친 손님</span></div><div class="kpi"><b>${avg.toFixed(1)}</b><span>평균 ★</span></div><div class="kpi"><b>${pRate}%</b><span>계량 PERFECT</span></div></div>
+  openModal(`<div class="m-eyebrow">DAY ${D.n} 영업 마감</div><div style="display:flex;align-items:center;gap:16px"><div class="grade">${gr}</div><div><h2 style="margin:0">${D.title} 마감!</h2><p style="margin:2px 0;font-size:22px;font-weight:900;color:#1E1E1E">${dpt}점 <span style="font-size:14px;color:#5D554E">/ 100점 만점</span></p></div></div>
+  <div class="kpis"><div class="kpi"><b>${served}</b><span>서빙</span></div><div class="kpi"><b>${lost}</b><span>놓친 손님</span></div><div class="kpi"><b>${misN}</b><span>실수</span></div><div class="kpi"><b>${pRate}%</b><span>계량 PERFECT</span></div></div>
   ${top.length?`<p style="font-weight:800;margin-bottom:0">오늘의 복습 포인트</p><ul class="mlist">${top.map(([t,n])=>`<li>${t}${n>1?` <b>×${n}</b>`:''}</li>`).join('')}</ul>`:'<p style="color:#23864A;font-weight:800">실수 없는 완벽한 영업이었어요!</p>'}
   <div class="m-btns">${D.n<5?`<button class="btn btn-primary" data-act="next-day" data-focus>DAY ${D.n+1} 영업 →</button>`:`<button class="btn btn-primary" data-act="cert" data-focus>수료증 받기</button>`}<button class="btn btn-ghost" data-act="retry-day">DAY ${D.n} 다시 하기</button><button class="btn btn-ghost" data-act="to-title">처음 화면</button></div>`);}
 function showCert(){const d=new Date();openModal(`<div class="cert"><div class="m-eyebrow">bhc 가맹교육</div><h2>버거 빌드 마스터</h2><p>클래식 · 뿌링클 · 맛초킹 · 콰삭<br>4종 치킨버거의 빌드와 랩핑을 모두 마쳤습니다.</p>
@@ -1517,10 +1522,10 @@ function showStudyCard(key,i){const B=BURGERS[key];
   <div class="m-btns"><button class="btn btn-primary" data-act="study-go" data-focus>만들기 시작!</button></div>`);}
 function advance(){if(G.queue.length)beginOrder(G.queue[0]);else if(G.pending.length){G.build=null;resetStationForBuild();renderRail();say('다음 손님을 기다리는 중…');}else endDay();}
 function customerLeaves(c){const idx=G.queue.indexOf(c);if(idx<0)return;G.queue.splice(idx,1);G.lost.push(c);G.score-=30;SFX.bad();updateHud();
-  if(idx===0){G.build=null;G.holding=false;hideHand();G.disp=null;G.phase='idle';advance();if(G.running)say(`${c.face} 손님이 기다리다 떠났어요… 만들던 ${BURGERS[c.key].short} 버거는 폐기 (-30점)`,'err');}
-  else{renderRail();say(`${c.face} 대기하던 손님이 떠났어요 (-30점)`,'err');}}
+  if(idx===0){G.build=null;G.holding=false;hideHand();G.disp=null;G.phase='idle';advance();if(G.running)say(`${c.face} 손님이 기다리다 떠났어요… 만들던 ${BURGERS[c.key].short} 버거는 폐기 (이 주문은 0점)`,'err');}
+  else{renderRail();say(`${c.face} 대기하던 손님이 떠났어요 (이 주문은 0점)`,'err');}}
 function serve(){if(G.phase!=='wrapped')return;ac();const b=G.build;
-  if(G.mode==='practice'){G.phase='done';SFX.cash();const psc=scoreBuild(b,null);try{if(window.__bhcGate&&window.__bhcGate.score)window.__bhcGate.score(psc.stars/3*100,'');}catch(e){}showPracticeResult(psc);return;}
+  if(G.mode==='practice'){G.phase='done';SFX.cash();const psc=scoreBuild(b,null);try{if(window.__bhcGate&&window.__bhcGate.score)window.__bhcGate.score(psc.pts,gradeOf(psc.pts));}catch(e){}showPracticeResult(psc);return;}
   const c=G.queue[0];const sc=scoreBuild(b,clamp(c.pat/c.max,0,1));G.queue.shift();G.score+=sc.pts;G.dayLog.push({key:b.key,stars:sc.stars,pts:sc.pts,results:b.results,mistakes:b.mistakes});
   G.phase='done';SFX.cash();updateHud();renderRail();showOrderResult(c,sc);}
 function tick(dt){const D=G.day;G.arrT+=dt;
@@ -1538,7 +1543,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
 
 /* ================= screens content ================= */
 function renderTitle(){const u=G.save.unlocked;$('#tycoon-day').textContent='DAY '+u;
-  $('#day-chips').innerHTML=DAYS.map(D=>{const lk=D.n>u;return `<button class="daychip${lk?' locked':''}${D.n===u?' cur':''}" data-day="${D.n}" ${lk?'disabled aria-disabled="true"':''}><b>DAY ${D.n}</b><span>${lk?'잠김':(G.save.best[D.n]?'최고 '+G.save.best[D.n]:D.title)}</span></button>`;}).join('');
+  $('#day-chips').innerHTML=DAYS.map(D=>{const lk=D.n>u;return `<button class="daychip${lk?' locked':''}${D.n===u?' cur':''}" data-day="${D.n}" ${lk?'disabled aria-disabled="true"':''}><b>DAY ${D.n}</b><span>${lk?'잠김':(G.save.best[D.n]?'최고 '+G.save.best[D.n]+(G.save.bestPt&&G.save.bestPt[D.n]!=null?' · '+G.save.bestPt[D.n]+'점':''):D.title)}</span></button>`;}).join('');
   $$('.daychip').forEach(b=>b.addEventListener('click',()=>{ac();startDay(+b.dataset.day);}));
   renderSoundBtns();}
 function renderSelect(){$('#burger-grid').innerHTML=BKEYS.map(k=>{const B=BURGERS[k];return `<button class="pick" data-pick="${k}">${stackSVG(k,{labels:false})}<h3>${B.name}</h3><span class="go">연습 시작 →</span></button>`;}).join('');
@@ -1675,7 +1680,9 @@ function uiSync(){if($('#scr-game').hidden)return;
   if(host!==hostLast){document.querySelectorAll('#gPanel .fhand').forEach(x=>x.remove());hostLast=host;if(host&&host.offsetParent){const f=document.createElement('span');f.className='fhand tl';f.setAttribute('aria-hidden','true');f.innerHTML=FHAND_SVG;host.appendChild(f);}}
   const sh=$('#stHand'),ring=!host&&!G.modalOpen?document.querySelector('#station .ring.on'):null;
   if(ring){const wr=$('#station-wrap').getBoundingClientRect(),r=ring.getBoundingClientRect();if(r.width){const rr=r.width/2;sh.style.left=(r.left-wr.left+rr+rr*.22-22).toFixed(1)+'px';sh.style.top=(r.top-wr.top+rr+rr*.18).toFixed(1)+'px';if(!sh.firstChild)sh.innerHTML=FHAND_SVG;sh.hidden=false;}else sh.hidden=true;}else sh.hidden=true;}
-setInterval(uiSync,180);
+let hudPt='';
+function scoreSync(){if($('#scr-game').hidden)return;const v=G.mode==='practice'?(G.build&&G.phase!=='done'?scoreBuild(G.build,null).pts:100):dayScore(true),t='점수 '+v;if(t!==hudPt){hudPt=t;$('#hud-score').textContent=t;}}
+setInterval(()=>{uiSync();scoreSync();},180);
 addEventListener('resize',fitApp2);if(window.visualViewport)visualViewport.addEventListener('resize',fitApp2);
 if(window.ResizeObserver)new ResizeObserver(fitStation).observe(document.getElementById('station-wrap'));
 /* 조립대에서 엉뚱한 곳을 눌렀을 때: 감점 없이 다시 안내 */
