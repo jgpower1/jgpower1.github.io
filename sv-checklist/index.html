@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>매장현장체크리스트</title>
+<meta name="application-name" content="매장현장체크리스트">
+<meta name="apple-mobile-web-app-title" content="매장현장체크리스트">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<meta name="author" content="J.G">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<style>
+/* ───── 앱 공통 ───── */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:#fff;color:#2b2a26;font-family:"Pretendard","Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+@page{size:A4;margin:10mm 11mm 9mm}
+
+/* ───── 첫 화면: A안·B안 고르기 ───── */
+.home{--fg:#2b2a26;--muted:#6b685f;--line:#e6e3da;--hit:#fbf4b0;max-width:560px;margin:0 auto;min-height:100vh;min-height:100dvh;
+  padding:calc(28px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:18px;font-size:16px;line-height:1.5;letter-spacing:-.01em;word-break:keep-all;-webkit-font-smoothing:antialiased}
+.home h1,.home h2,.home p{margin:0}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.brand img{width:60px;height:60px;border-radius:14px;flex:none;display:block}
+.brand .eb{font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:.02em}
+.brand h1{font-size:27px;font-weight:800;letter-spacing:-.055em;line-height:1.2}
+.ask{font-size:14px;font-weight:800;color:var(--muted);letter-spacing:.02em;margin-top:4px}
+.picks{display:flex;flex-direction:column;gap:12px}
+.pick{appearance:none;-webkit-appearance:none;font:inherit;letter-spacing:inherit;text-align:left;color:inherit;background:#fff;border:2px solid var(--fg);border-radius:6px;
+  padding:16px 16px 14px;width:100%;cursor:pointer;display:grid;grid-template-columns:52px minmax(0,1fr) 14px;gap:3px 14px;align-items:start}
+.pick:active{background:#f6f5f0}
+.pick:focus-visible{outline:3px solid #f7eb37;outline-offset:2px}
+.pick .ltr{grid-row:1/span 2;grid-column:1;width:52px;height:52px;border-radius:5px;background:var(--fg);color:#fff;font-size:27px;font-weight:800;display:grid;place-items:center;line-height:1}
+.pick .ttl{grid-column:2;font-size:20px;font-weight:800;letter-spacing:-.04em;line-height:1.3;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.pick .ttl small{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0}
+.pick .dsc{grid-column:2;font-size:14.5px;color:var(--muted);line-height:1.45}
+.pick .go{grid-row:1/span 2;grid-column:3;align-self:center;width:10px;height:10px;border:solid var(--fg);border-width:2.5px 2.5px 0 0;transform:rotate(45deg);margin-left:-2px}
+.pick .prog{grid-column:1/-1;margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.pbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--fg);border-radius:3px;transition:width .25s}
+.meta{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:800}
+.meta .m-r{text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hnote{background:var(--hit);border-radius:4px;padding:12px 14px;font-size:14px;line-height:1.55}
+.hnote b{font-weight:800}
+/* 홈 화면에 앱 설치 버튼: 바로 설치할 수 있을 때는 형광 노랑 */
+.inst{appearance:none;-webkit-appearance:none;font:inherit;letter-spacing:inherit;width:100%;display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:2px 8px;
+  padding:13px 16px;border:2px solid var(--fg);border-radius:6px;background:var(--hit);color:var(--fg);font-size:16.5px;font-weight:800;cursor:pointer}
+.inst small{font-size:13px;font-weight:600;color:var(--muted)}
+.inst.ready{background:#f7eb37}
+.inst.ready small{color:#4a4310}
+.inst:active{filter:brightness(.96)}
+.inst:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+
+/* 설치 안내 창 */
+.mdl{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.mdl-bg{position:absolute;inset:0;background:rgba(20,19,17,.5)}
+.sheet{position:relative;width:100%;max-width:520px;max-height:92vh;overflow:auto;background:#fff;color:#2b2a26;border-radius:14px 14px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));font-size:15.5px;line-height:1.55;letter-spacing:-.01em;word-break:keep-all;-webkit-font-smoothing:antialiased}
+@media (min-width:600px){.mdl{align-items:center}.sheet{border-radius:10px}}
+.sheet h2,.sheet p{margin:0}
+.sheet .m-eb{font-size:12.5px;font-weight:800;color:#6b685f;letter-spacing:.04em}
+.sheet h2{margin:2px 0 10px;font-size:21px;font-weight:800;letter-spacing:-.04em;line-height:1.3}
+.sheet p{margin-top:8px}
+.sheet .warn{background:#fbf4b0;border-radius:4px;padding:9px 12px;font-weight:700}
+.sheet ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.sheet .legend{font-size:13.5px;color:#6b685f;margin-top:10px}
+.iconbox{display:flex;align-items:center;gap:12px;background:#f6f5f0;border-radius:10px;padding:10px 12px}
+.iconbox img{width:56px;height:56px;border-radius:13px;flex:none}
+.iconbox b{font-size:16px;font-weight:800}
+.m-btns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.mb{appearance:none;-webkit-appearance:none;font:inherit;letter-spacing:inherit;font-size:16px;font-weight:800;padding:13px;border-radius:6px;border:2px solid #2b2a26;background:#fff;color:#2b2a26;cursor:pointer}
+.mb.pri{background:#2b2a26;color:#fff}
+.mb:focus-visible{outline:3px solid #f7eb37;outline-offset:2px}
+.hfoot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.5}
+
+/* ───── 체크리스트 화면 위 막대: 처음으로 · 제목 · 다른 안으로 ───── */
+.appbar{position:sticky;top:0;z-index:20;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;
+  background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e6e3da;
+  padding:calc(6px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 6px max(10px,env(safe-area-inset-left,0px));font-family:inherit;letter-spacing:-.01em}
+.ab-back,.ab-sw{appearance:none;-webkit-appearance:none;font:inherit;color:#2b2a26;cursor:pointer;background:none}
+.ab-back{justify-self:start;border:0;padding:9px 6px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px}
+.ab-back::before{content:"";width:9px;height:9px;border:solid #2b2a26;border-width:0 0 2.5px 2.5px;transform:rotate(45deg);margin-left:2px}
+.ab-title{font-size:15px;font-weight:800;white-space:nowrap}
+.ab-title small{font-weight:600;color:#6b685f;font-size:13px;margin-left:4px}
+.ab-sw{justify-self:end;border:1px solid #2b2a26;border-radius:3px;padding:6px 10px;font-size:13px;font-weight:700;background:#fff;white-space:nowrap}
+.ab-back:focus-visible,.ab-sw:focus-visible{outline:2px solid #2b2a26;outline-offset:2px}
+
+/* ───── A안(상세형) 원본 스타일: .va 안에서만 ───── */
+.va{--bg:#ffffff; --fg:#2b2a26; --muted:#6b685f; --line:#e6e3da; --code:#f8f7f3;
+  --mark:#f7eb37; --mark-fg:#2b2a26; --hit:#fbf4b0;
+  --sans:"Pretendard","Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  color-scheme:light;}
+.va *{box-sizing:border-box}
+.va{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.65;letter-spacing:-.01em;word-break:keep-all;-webkit-font-smoothing:antialiased}
+.va .wrap{max-width:1032px;margin:0 auto;padding-block:48px 64px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:44px}
+.va h1,.va h2,.va h3,.va p{margin:0}
+.va b{font-weight:700}
+.va .top{display:flex;flex-direction:column;gap:14px}
+.va .eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;display:flex;flex-wrap:wrap;gap:4px 14px}
+.va .eyebrow span{color:var(--muted);font-weight:500;letter-spacing:.02em}
+.va h1{font-size:clamp(34px,6vw,52px);line-height:1.15;letter-spacing:-.055em;font-weight:800}
+.va .lede{font-size:17px;color:var(--muted)}
+.va .core{background:var(--fg);color:var(--bg);border-radius:3px;padding:22px 26px;display:flex;flex-direction:column;gap:8px}
+.va .core h2{font-size:clamp(22px,3.2vw,28px);font-weight:800;letter-spacing:-.04em;line-height:1.25}
+.va .core p{font-size:17px;line-height:1.7}
+.va .block{border-top:2px solid var(--fg);padding-top:20px;display:flex;flex-direction:column;gap:16px}
+.va .block>h2{font-size:clamp(21px,3vw,26px);font-weight:800;letter-spacing:-.04em;line-height:1.25}
+.va .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));counter-reset:st}
+.va .steps li{counter-increment:st;padding:4px 22px 4px 0;min-width:0}
+.va .steps li+li{border-left:1px solid var(--line);padding-left:22px}
+.va .steps li::before{content:counter(st);display:block;font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.va .steps b{display:block;font-weight:800}
+.va .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.va .cols>div{padding:2px 20px 2px 0;min-width:0}
+.va .cols>div+div{border-left:1px solid var(--line);padding-left:20px}
+.va .cols2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.va .cols2>div{padding:2px 24px 2px 0;min-width:0}
+.va .cols2>div+div{border-left:1px solid var(--line);padding-left:24px;padding-right:0}
+.va .sub{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1.3}
+.va .sub small{display:block;font-size:12.5px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-bottom:2px}
+.va .cks{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+.va .ck{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;align-items:start;font-size:15px;line-height:1.5;cursor:pointer}
+.va .ck input{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:3px 0 0;border:1.5px solid var(--fg);border-radius:2px;background:var(--bg);cursor:pointer;position:relative}
+.va .ck input:checked{background:var(--fg)}
+.va .ck input:checked::after{content:"";position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.va .ck input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.va .ck input:checked+span{color:var(--muted)}
+.va .five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.va .five div{padding:10px 14px 10px 0;min-width:0}
+.va .five div+div{border-left:1px solid var(--line);padding-left:14px}
+.va .five dt{font-size:13.5px;font-weight:800;margin-bottom:2px}
+.va .five dd{margin:0;font-size:13.5px;line-height:1.5;color:var(--muted)}
+.va .tbl{width:100%;border-collapse:collapse;font-size:14.5px;line-height:1.5}
+.va .tbl th{font-size:12.5px;font-weight:800;letter-spacing:.04em;color:var(--muted);text-align:left;padding:6px 14px 6px 0;border-bottom:2px solid var(--fg)}
+.va .tbl td{padding:9px 14px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.va .tbl td:last-child,.va .tbl th:last-child{padding-right:0}
+.va .tbl .h{font-weight:800}
+.va .tbl .h small{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.va .tbl .bad{color:var(--muted)}
+.va .tbl tr{break-inside:avoid}
+.va .note{font-size:14.5px;color:var(--muted);padding-left:14px;border-left:2px solid var(--line)}
+.va .note b{color:var(--fg)}
+.va .qs{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:1.5}
+.va .qs li{padding-left:12px;border-left:2px solid var(--line)}
+.va .fill{background:var(--hit);border-radius:3px;padding:16px 20px;display:flex;flex-direction:column;gap:9px}
+.va .fill h3{font-size:17px;font-weight:800;letter-spacing:-.03em}
+.va .fill p{font-size:15px}
+.va .blank{display:inline-block;width:150px;max-width:100%;border-bottom:1.5px solid var(--fg);vertical-align:baseline}
+.va .blank.w{width:280px}
+.va .blank input{display:inline-block;vertical-align:baseline;width:100%;margin:0;padding:1px 3px 2px;font:inherit;font-size:16px;font-weight:500;line-height:1.35;color:var(--fg);background:transparent;border:0;border-radius:0;outline:0;-webkit-appearance:none;appearance:none}
+.va .blank input:focus{background-color:rgba(255,255,255,.6)}
+.va .tools{display:flex;flex-wrap:wrap;gap:8px}
+.va .btn{appearance:none;font:inherit;font-size:14px;font-weight:700;background:var(--bg);color:var(--fg);border:1px solid var(--fg);border-radius:3px;padding:7px 12px;cursor:pointer}
+.va .btn.pri{background:var(--fg);color:var(--bg)}
+.va .btn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.va .foot{border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
+.va .foot-legal{margin-left:auto;text-align:right}
+.va{--pv-fs:9.8pt;--pv-lines:3;--pv-w:calc(188mm - 60pt);--pfs:8.9pt}
+.va .visit{background:var(--hit);border-radius:3px;padding:14px 20px 16px;display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:12px 28px}
+.va .vf{display:flex;flex-direction:column;gap:3px;min-width:0}
+.va .vf.full{grid-column:1/-1}
+.va .vf label{font-size:12.5px;font-weight:800;letter-spacing:.04em;color:var(--muted);cursor:pointer}
+.va .vf input,.va .vf textarea{display:block;width:100%;min-width:0;margin:0;font:inherit;font-size:17px;font-weight:500;line-height:1.6;letter-spacing:-.01em;color:var(--fg);background-color:transparent;border:0;border-radius:0;outline:0}
+.va .vf input{min-height:calc(1.6em + 6px);padding:2px 2px 4px;border-bottom:1.5px solid var(--fg)}
+.va .vf input[type=text],.va .vf textarea{-webkit-appearance:none;appearance:none}
+.va .vf input[type=date]::-webkit-date-and-time-value{text-align:left}
+.va .vf textarea{padding:0 2px;resize:none;overflow:hidden;min-height:4.8em;background:linear-gradient(to bottom,transparent calc(100% - 1.5px),var(--fg) calc(100% - 1.5px)) 0 0/100% 1.6em repeat-y local}
+.va .vf input:focus,.va .vf textarea:focus{background-color:rgba(255,255,255,.6)}
+.va .vf ::placeholder{color:var(--muted);opacity:.75;font-weight:400}
+.va .pv{display:none}
+.va .status{font-size:13.5px;color:var(--muted);align-self:center;margin-left:4px}
+.va .status .link{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0 2px;font:inherit;font-weight:800;color:var(--fg);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.va .exl{font-size:15px;font-weight:800;color:var(--fg)}
+@media screen and (max-width:720px){
+.va .visit{grid-template-columns:minmax(0,1fr);padding:14px 16px;gap:12px}
+.va .steps,.va .cols,.va .cols2,.va .five{grid-template-columns:minmax(0,1fr)}
+.va .steps li,.va .steps li+li{border-left:0;padding:12px 0;border-top:1px solid var(--line)}
+.va .steps li:first-child{border-top:0;padding-top:4px}
+.va .cols>div,.va .cols>div+div,.va .cols2>div,.va .cols2>div+div{border-left:0;padding:12px 0}
+.va .cols>div+div,.va .cols2>div+div{border-top:1px solid var(--line)}
+.va .five div,.va .five div+div{border-left:0;padding:8px 0}
+.va .five div+div{border-top:1px solid var(--line)}
+.va .tbl thead{display:none}
+.va .tbl,.va .tbl tbody,.va .tbl tr,.va .tbl td{display:block;width:100%}
+.va .tbl tr{padding:10px 0;border-bottom:1px solid var(--line)}
+.va .tbl td{border:0;padding:2px 0}
+.va .blank{width:130px}
+.va .blank.w{width:100%}
+.va .foot-legal{margin-left:0;text-align:left}
+}
+@media print{
+.va *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.va{font-size:9.6pt;line-height:1.42}
+.va .wrap{max-width:none;padding:0;gap:7.5pt}
+.va .tools{display:none}
+.va .top{gap:3pt}
+.va .eyebrow{font-size:8pt}
+.va h1{font-size:21pt}
+.va .lede{font-size:9pt}
+.va .core{padding:7pt 11pt;gap:1pt}
+.va .core h2{font-size:13.5pt}
+.va .core p{font-size:9.4pt;line-height:1.45}
+.va .block{padding-top:5pt;gap:5pt;border-top-width:1.5pt}
+.va .block>h2{font-size:12.5pt}
+.va .steps li{padding:0 10pt 0 0;font-size:9.1pt}
+.va .steps li+li{padding-left:10pt}
+.va .steps li::before{font-size:14pt;margin-bottom:1pt}
+.va .cols>div{padding:0 9pt 0 0}
+.va .cols>div+div{padding-left:9pt}
+.va .cols2>div{padding:0 10pt 0 0}
+.va .cols2>div+div{padding-left:10pt;padding-right:0}
+.va .sub{font-size:10.2pt}
+.va .sub small{font-size:7.6pt;margin-bottom:0}
+.va .cks{margin-top:3pt;gap:2.4pt}
+.va .ck{font-size:8.9pt;line-height:1.36;grid-template-columns:10pt minmax(0,1fr);gap:4pt}
+.va .ck input{width:8.6pt;height:8.6pt;margin-top:1.6pt;border-width:.8pt}
+.va .five div{padding:3pt 6pt 3pt 0}
+.va .five div+div{padding-left:6pt}
+.va .five dt{font-size:8.6pt;margin-bottom:0}
+.va .five dd{font-size:8.1pt;line-height:1.34}
+.va .tbl{font-size:8.7pt;line-height:1.36}
+.va .tbl th{font-size:7.6pt;padding:2pt 7pt 2pt 0;border-bottom-width:1.2pt}
+.va .tbl td{padding:3pt 7pt 3pt 0}
+.va .tbl .h small{font-size:7.4pt}
+.va .note{font-size:8.5pt;line-height:1.38;padding-left:7pt;border-left-width:1.2pt}
+.va .qs{margin-top:3pt;gap:2.2pt;font-size:8.8pt;line-height:1.36}
+.va .qs li{padding-left:6pt;border-left-width:1.2pt}
+.va .fill{padding:6pt 10pt;gap:3pt;break-inside:avoid}
+.va .fill h3{font-size:10pt}
+.va .fill p{font-size:8.9pt}
+.va .blank,.va .blank.w{width:var(--pw);min-width:0}
+.va .exl{font-size:8.6pt;line-height:1.3;margin-bottom:-1.5pt;break-after:avoid}
+.va .foot{padding-top:3pt;font-size:7pt;line-height:1.3;gap:2pt 10pt}
+.va .block>h2,.va .sub{break-after:avoid}
+.va .p2{break-inside:avoid}
+.va .fill,.va .five,.va .cols>div,.va .cols2>div{break-inside:avoid}
+}
+@media print{
+.va{line-height:1.55}
+.va .wrap{gap:10pt}
+.va .block{gap:6.5pt;padding-top:6.5pt}
+.va .five dd{line-height:1.45}
+.va .fill{gap:4pt;padding:7pt 10pt}
+.va .ck,.va .tbl,.va .qs,.va .note{line-height:1.55}
+.va .cks{gap:3.2pt}
+.va .qs{gap:3pt}
+.va .tbl td{padding-top:3.6pt;padding-bottom:3.6pt}
+.va .p2 .ck,.va .p2 .tbl,.va .p2 .note,.va .p2~.block .ck,.va .p2~.block .qs{line-height:1.55}
+.va .p2~.block .cks{gap:4.4pt}
+.va .p2~.block .qs{gap:4pt}
+.va .p2 .tbl td{padding-top:4.4pt;padding-bottom:4.4pt}
+}
+@media print{
+.va .visit{padding:4.5pt 10pt 5pt;gap:2.5pt 16pt;grid-template-columns:minmax(0,1fr) 132pt;break-inside:avoid}
+.va .vf{flex-direction:row;align-items:baseline;gap:6pt}
+.va .vf label{flex:none;width:34pt;font-size:7.8pt;letter-spacing:.02em}
+.va .vf:nth-child(2) label{width:auto}
+.va .vf input,.va .vf textarea,.va .blank input{display:none}
+.va .pv{display:block;flex:1;min-width:0;font-size:var(--pv-fs);font-weight:500;line-height:1.5;min-height:1.5em;border-bottom:.9pt solid var(--fg);white-space:pre-wrap;overflow-wrap:anywhere}
+.va .vf.full .pv{position:relative;font-size:calc(var(--pv-fs) * var(--issue-scale,1));min-height:calc(var(--pv-fs) * 1.5 * var(--pv-lines))}
+.va .vf.full .pv:empty::after{content:"";position:absolute;left:0;right:0;top:calc(1.5em - .9pt);height:calc(1.5em + .9pt);border-top:.9pt solid var(--fg);border-bottom:.9pt solid var(--fg)}
+.va .pv:empty::before{content:"\200b"}
+.va .blank .pv{display:block;font-size:calc(var(--pfs) * var(--fit,1));font-weight:500;line-height:inherit;min-height:0;border:0;padding:0 3pt;white-space:nowrap}
+.va .blank .pv.wrap{white-space:normal}
+.va .wrap{gap:7pt}
+.va .top{line-height:1.42}
+.va .core{padding:6pt 11pt}
+.va .fill{gap:3pt;padding:6pt 10pt}
+.va .block:not(.p2):not(.p2~.block){gap:4pt;padding-top:4pt}
+.va .block:not(.p2):not(.p2~.block) .steps li,.va .block:not(.p2):not(.p2~.block) .ck,.va .block:not(.p2):not(.p2~.block) .tbl,.va .block:not(.p2):not(.p2~.block) .note{line-height:1.37}
+.va .block:not(.p2):not(.p2~.block) .cks{gap:2.6pt}
+.va .block:not(.p2):not(.p2~.block) .five dd{line-height:1.36}
+.va .block:not(.p2):not(.p2~.block) .tbl td{padding-top:3pt;padding-bottom:3pt}
+}
+
+/* ───── B안(간결형) 원본 스타일: .vb 안에서만 ───── */
+.vb{--bg:#ffffff; --fg:#2b2a26; --muted:#6b685f; --line:#e6e3da; --code:#f8f7f3;
+  --mark:#f7eb37; --mark-fg:#2b2a26; --hit:#fbf4b0;
+  --sans:"Pretendard","Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  color-scheme:light;}
+.vb *{box-sizing:border-box}
+.vb{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.5;letter-spacing:-.01em;word-break:keep-all;-webkit-font-smoothing:antialiased}
+.vb .wrap{max-width:1032px;margin:0 auto;padding-block:40px 56px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:36px}
+.vb h1,.vb h2,.vb h3,.vb p{margin:0}
+.vb ul{list-style:none;margin:0;padding:0}
+.vb b{font-weight:800}
+.vb .top{display:flex;flex-direction:column;gap:12px}
+.vb .eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;display:flex;flex-wrap:wrap;gap:4px 14px}
+.vb .eyebrow span{color:var(--muted);font-weight:500;letter-spacing:.02em}
+.vb h1{font-size:clamp(32px,6vw,48px);line-height:1.15;letter-spacing:-.055em;font-weight:800}
+.vb .core{background:var(--fg);color:var(--bg);border-radius:3px;padding:16px 24px;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 24px}
+.vb .core h2{font-size:clamp(21px,3.2vw,27px);font-weight:800;letter-spacing:-.04em;line-height:1.25}
+.vb .core p{font-size:17px;font-weight:500}
+.vb .block{border-top:2px solid var(--fg);padding-top:16px;display:flex;flex-direction:column;gap:14px}
+.vb .block>h2{font-size:clamp(20px,3vw,25px);font-weight:800;letter-spacing:-.04em;line-height:1.25}
+.vb .three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.vb .three>div{padding:0 18px 0 0;min-width:0}
+.vb .three>div+div{border-left:1px solid var(--line);padding-left:18px}
+.vb .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.vb .two>div{padding:0 22px 0 0;min-width:0}
+.vb .two>div+div{border-left:1px solid var(--line);padding-left:22px;padding-right:0}
+.vb .key b{display:block;font-size:20px;letter-spacing:-.03em;line-height:1.3}
+.vb .key span{color:var(--muted);font-size:15px}
+.vb .sub{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1.3;display:flex;align-items:baseline;gap:8px}
+.vb .sub small{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0}
+.vb .cks{margin-top:8px;display:flex;flex-direction:column;gap:7px}
+.vb .ck{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;align-items:start;font-size:16px;line-height:1.4;cursor:pointer}
+.vb .ck input{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:2px 0 0;border:1.5px solid var(--fg);border-radius:2px;background:var(--bg);cursor:pointer;position:relative}
+.vb .ck input:checked{background:var(--fg)}
+.vb .ck input:checked::after{content:"";position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.vb .ck input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.vb .ck input:checked+span{color:var(--muted)}
+.vb .ck small{color:var(--muted);font-size:.86em;font-weight:500}
+.vb .five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.vb .five div{padding:9px 12px 9px 0;min-width:0}
+.vb .five div+div{border-left:1px solid var(--line);padding-left:12px}
+.vb .five dt{font-size:15px;font-weight:800}
+.vb .five dd{margin:0;font-size:14px;line-height:1.35;color:var(--muted)}
+.vb .tbl{width:100%;border-collapse:collapse;font-size:15px;line-height:1.4}
+.vb .tbl th{font-size:12.5px;font-weight:800;letter-spacing:.04em;color:var(--muted);text-align:left;padding:5px 12px 5px 0;border-bottom:2px solid var(--fg)}
+.vb .tbl td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.vb .tbl td:last-child,.vb .tbl th:last-child{padding-right:0}
+.vb .tbl tr{break-inside:avoid}
+.vb .h{font-weight:800}
+.vb .h small{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.vb .rec{color:var(--muted);font-size:.93em}
+.vb .no{color:var(--muted)}
+.vb .no::before{content:"✕ ";font-weight:800}
+.vb .x{font-weight:800;color:var(--muted);margin-right:3px}
+.vb .o{font-weight:800;margin-right:3px}
+.vb .inl{display:flex;flex-wrap:wrap;gap:4px 14px}
+.vb .inl .ck{display:inline-grid;grid-template-columns:16px auto;gap:5px;font-size:15px}
+.vb .inl .ck input{width:14px;height:14px}
+.vb .line{font-size:15px;color:var(--muted)}
+.vb .line b{color:var(--fg)}
+.vb .qs{margin-top:8px;display:flex;flex-direction:column;gap:6px;font-size:16px;line-height:1.35}
+.vb .qs li{padding-left:11px;border-left:2px solid var(--line)}
+.vb .dq li{color:#1d4fb8;font-weight:800;border-left-color:#1d4fb8}
+.vb .qs .lb{display:block;font-weight:800;font-size:.9em}
+.vb .qs .sm{color:var(--muted);font-size:.93em}
+.vb .flow{display:flex;flex-direction:column;gap:7px;font-size:16px;line-height:1.35;counter-reset:f}
+.vb .flow li{counter-increment:f;display:grid;grid-template-columns:20px minmax(0,1fr);gap:6px}
+.vb .flow li::before{content:counter(f);font-weight:800}
+.vb .grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:9px;border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:14.5px;line-height:1.3}
+.vb .grade div{padding:5px 8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.vb .grade b{margin-right:3px}
+.vb .grade span{color:var(--muted)}
+.vb .fill{background:var(--hit);border-radius:3px;padding:12px 18px;display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 16px;align-items:end;font-size:15.5px}
+.vb .fill h3{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1.3;grid-row:span 2;align-self:center;padding-right:8px}
+.vb .fld{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
+.vb .fld i{font-style:normal;flex:1;min-width:30px;border-bottom:1.5px solid var(--fg)}
+.vb .fld i input{display:inline-block;vertical-align:baseline;width:100%;margin:0;padding:1px 3px 2px;font:inherit;font-size:16px;font-weight:500;line-height:1.35;color:var(--fg);background:transparent;border:0;border-radius:0;outline:0;-webkit-appearance:none;appearance:none}
+.vb .fld i input:focus{background-color:rgba(255,255,255,.6)}
+.vb .tools{display:flex;flex-wrap:wrap;gap:8px}
+.vb .btn{appearance:none;font:inherit;font-size:14px;font-weight:700;background:var(--bg);color:var(--fg);border:1px solid var(--fg);border-radius:3px;padding:7px 12px;cursor:pointer}
+.vb .btn.pri{background:var(--fg);color:var(--bg)}
+.vb .btn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.vb .foot{border-top:1px solid var(--line);padding-top:12px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
+.vb .foot-legal{margin-left:auto;text-align:right}
+.vb{--pv-fs:10.6pt;--pv-lines:3;--pv-w:calc(188mm - 62pt);--pfs:11.52pt}
+.vb .visit{background:var(--hit);border-radius:3px;padding:12px 18px 14px;display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:10px 28px}
+.vb .vf{display:flex;flex-direction:column;gap:2px;min-width:0}
+.vb .vf.full{grid-column:1/-1}
+.vb .vf label{font-size:13px;font-weight:800;color:var(--muted);cursor:pointer}
+.vb .vf input,.vb .vf textarea{display:block;width:100%;min-width:0;margin:0;font:inherit;font-size:17px;font-weight:500;line-height:1.6;letter-spacing:-.01em;color:var(--fg);background-color:transparent;border:0;border-radius:0;outline:0}
+.vb .vf input{min-height:calc(1.6em + 6px);padding:2px 2px 4px;border-bottom:1.5px solid var(--fg)}
+.vb .vf input[type=text],.vb .vf textarea{-webkit-appearance:none;appearance:none}
+.vb .vf input[type=date]::-webkit-date-and-time-value{text-align:left}
+.vb .vf textarea{padding:0 2px;resize:none;overflow:hidden;min-height:4.8em;background:linear-gradient(to bottom,transparent calc(100% - 1.5px),var(--fg) calc(100% - 1.5px)) 0 0/100% 1.6em repeat-y local}
+.vb .vf input:focus,.vb .vf textarea:focus{background-color:rgba(255,255,255,.6)}
+.vb .vf ::placeholder{color:var(--muted);opacity:.75;font-weight:400}
+.vb .pv{display:none}
+.vb .status{font-size:13.5px;color:var(--muted);align-self:center;margin-left:4px}
+.vb .status .link{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0 2px;font:inherit;font-weight:800;color:var(--fg);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+@media screen and (max-width:720px){
+.vb .visit{grid-template-columns:minmax(0,1fr);padding:14px 16px;gap:12px}
+.vb .three,.vb .two,.vb .five{grid-template-columns:minmax(0,1fr)}
+.vb .three>div,.vb .three>div+div,.vb .two>div,.vb .two>div+div{border-left:0;padding:12px 0}
+.vb .three>div+div,.vb .two>div+div{border-top:1px solid var(--line)}
+.vb .five div,.vb .five div+div{border-left:0;padding:7px 0}
+.vb .five div+div{border-top:1px solid var(--line)}
+.vb .tbl thead{display:none}
+.vb .tbl,.vb .tbl tbody,.vb .tbl tr,.vb .tbl td{display:block;width:100%}
+.vb .tbl tr{padding:10px 0;border-bottom:1px solid var(--line)}
+.vb .tbl td{border:0;padding:3px 0}
+.vb .fill{grid-template-columns:minmax(0,1fr)}
+.vb .fill h3{grid-row:auto}
+.vb .foot-legal{margin-left:0;text-align:left}
+}
+@media print{
+.vb *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.vb{--f:12pt;--s:1.2}
+.vb .p2,.vb .p2~.block,.vb .foot{--f:11pt;--s:1.2}
+.vb{font-size:var(--f)}
+.vb .wrap{max-width:none;padding:0;gap:calc(9pt*var(--s))}
+.vb .tools{display:none}
+.vb .top{gap:calc(4pt*var(--s))}
+.vb .eyebrow{font-size:8pt}
+.vb h1{font-size:22pt}
+.vb .core{padding:calc(6pt*var(--s)) 11pt}
+.vb .core h2{font-size:14pt}
+.vb .core p{font-size:10.4pt}
+.vb .fill{padding:calc(6pt*var(--s)) 10pt;gap:calc(5pt*var(--s)) 12pt;font-size:calc(var(--f)*.96);break-inside:avoid}
+.vb .fill h3{font-size:11pt}
+.vb .block{padding-top:calc(6pt*var(--s));gap:calc(6pt*var(--s));border-top-width:1.5pt}
+.vb .block>h2{font-size:13pt;break-after:avoid}
+.vb .three>div{padding:0 9pt 0 0}
+.vb .three>div+div{padding-left:9pt}
+.vb .two>div{padding:0 11pt 0 0}
+.vb .two>div+div{padding-left:11pt;padding-right:0}
+.vb .three>div,.vb .two>div,.vb .five,.vb .grade{break-inside:avoid}
+.vb .key b{font-size:calc(var(--f)*1.14)}
+.vb .key span{font-size:calc(var(--f)*.9)}
+.vb .sub{font-size:calc(var(--f)*1.08);gap:5pt}
+.vb .sub small{font-size:8pt}
+.vb .cks{margin-top:calc(3.5pt*var(--s));gap:calc(4pt*var(--s))}
+.vb .ck{font-size:var(--f);line-height:1.34;grid-template-columns:10pt minmax(0,1fr);gap:5pt}
+.vb .ck input{width:9pt;height:9pt;margin-top:1.8pt;border-width:.8pt}
+.vb .five div{padding:calc(3.5pt*var(--s)) 6pt calc(3.5pt*var(--s)) 0}
+.vb .five div+div{padding-left:6pt}
+.vb .five dt{font-size:calc(var(--f)*.92)}
+.vb .five dd{font-size:calc(var(--f)*.84)}
+.vb .tbl{font-size:calc(var(--f)*.96);line-height:1.34}
+.vb .tbl th{font-size:7.8pt;padding:2pt 7pt 2pt 0;border-bottom-width:1.2pt}
+.vb .tbl td{padding:calc(4pt*var(--s)) 7pt calc(4pt*var(--s)) 0}
+.vb .h small{font-size:7.4pt}
+.vb .inl{gap:calc(2.5pt*var(--s)) 9pt}
+.vb .inl .ck{font-size:calc(var(--f)*.94);grid-template-columns:9pt auto;gap:3.5pt}
+.vb .inl .ck input{width:8.4pt;height:8.4pt}
+.vb .line{font-size:calc(var(--f)*.9)}
+.vb .qs{margin-top:calc(3.5pt*var(--s));gap:calc(3.5pt*var(--s));font-size:calc(var(--f)*.96)}
+.vb .qs li{padding-left:6pt;border-left-width:1.2pt}
+.vb .flow{gap:calc(3.5pt*var(--s));font-size:calc(var(--f)*.96)}
+.vb .flow li{grid-template-columns:10pt minmax(0,1fr);gap:4pt}
+.vb .grade{margin-top:calc(5pt*var(--s));font-size:calc(var(--f)*.86)}
+.vb .grade div{padding:calc(2.5pt*var(--s)) 5pt}
+.vb .foot{padding-top:3pt;font-size:7pt;line-height:1.3;gap:2pt 10pt}
+.vb .p2{break-inside:avoid}
+}
+@media print{
+.vb .visit{padding:calc(3.5pt*var(--s)) 10pt calc(3.8pt*var(--s));gap:calc(2pt*var(--s)) 16pt;grid-template-columns:minmax(0,1fr) 140pt;break-inside:avoid}
+.vb .vf{flex-direction:row;align-items:baseline;gap:6pt}
+.vb .vf label{flex:none;width:36pt;font-size:8.4pt}
+.vb .vf:nth-child(2) label{width:auto}
+.vb .vf input,.vb .vf textarea,.vb .fld i input{display:none}
+.vb .pv{display:block;flex:1;min-width:0;font-size:var(--pv-fs);font-weight:500;line-height:1.5;min-height:1.5em;border-bottom:.9pt solid var(--fg);white-space:pre-wrap;overflow-wrap:anywhere}
+.vb .vf.full .pv{position:relative;font-size:calc(var(--pv-fs) * var(--issue-scale,1));min-height:calc(var(--pv-fs) * 1.5 * var(--pv-lines))}
+.vb .vf.full .pv:empty::after{content:"";position:absolute;left:0;right:0;top:calc(1.5em - .9pt);height:calc(1.5em + .9pt);border-top:.9pt solid var(--fg);border-bottom:.9pt solid var(--fg)}
+.vb .pv:empty::before{content:"\200b"}
+.vb .fld i .pv{display:block;font-size:calc(var(--pfs) * var(--fit,1));font-weight:500;line-height:1.3;min-height:0;border:0;padding:0 3pt;white-space:nowrap}
+.vb .fld i .pv.wrap{white-space:normal}
+}
+
+
+/* ───── 앱 안에서 보는 화면 조정(원본 뒤에 와서 덮어쓴다). 인쇄에는 적용하지 않는다 ───── */
+@media screen{
+  .view .wrap{padding-top:22px;padding-bottom:calc(56px + env(safe-area-inset-bottom,0px))}
+}
+@media screen and (max-width:720px){
+  .view .btn{padding:10px 14px;font-size:15px}
+  .view .status{flex-basis:100%;margin-left:0}
+}
+@media screen and (max-width:360px){
+  .ab-title small{display:none}
+}
+@media print{
+  .appbar,#home{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<main id="home" class="home" aria-label="체크리스트 고르기">
+  <header class="brand">
+    <img src="icons/apple-touch-icon.png" alt="" width="60" height="60">
+    <div><p class="eb">다이닝브랜즈그룹 SV 역량강화 교육</p><h1>매장현장체크리스트</h1></div>
+  </header>
+  <button class="inst" id="btn-install" type="button" hidden>홈 화면에 앱 설치하기 <small>아이콘으로 바로 열기</small></button>
+  <p class="ask">어떤 체크리스트로 볼까요?</p>
+  <div class="picks">
+    <button class="pick" type="button" data-go="a">
+      <span class="ltr" aria-hidden="true">A</span>
+      <span class="ttl">상세형 <small>문장으로 풀어 쓴 안</small></span>
+      <span class="dsc">교육 내용을 문장으로 풀어 썼습니다. 처음 쓰거나 내용을 다시 익힐 때 좋습니다.</span>
+      <span class="go" aria-hidden="true"></span>
+      <span class="prog"><span class="pbar"><i></i></span><span class="meta"><span class="m-l"></span><span class="m-r"></span></span></span>
+    </button>
+    <button class="pick" type="button" data-go="b">
+      <span class="ltr" aria-hidden="true">B</span>
+      <span class="ttl">간결형 <small>핵심만 줄인 안</small></span>
+      <span class="dsc">한눈에 보이게 짧게 줄였습니다. 매장 앞에서 빠르게 체크할 때 좋습니다.</span>
+      <span class="go" aria-hidden="true"></span>
+      <span class="prog"><span class="pbar"><i></i></span><span class="meta"><span class="m-l"></span><span class="m-r"></span></span></span>
+    </button>
+  </div>
+  <p class="hnote" id="home-note">체크와 적은 내용은 <b>이 휴대폰에 자동으로 남습니다.</b> A안과 B안은 따로 남고, 매장별로 보관하려면 체크리스트 안의 <b>[엑셀로 저장]</b>을 누르세요.</p>
+  <footer class="hfoot">강의: 권민준 가맹거래사, 신윤석 변호사 · 사후 자료 2026.11.3~5 · 실제 법률 판단은 법무팀과 함께</footer>
+</main>
+
+<div class="view va" id="view-a" hidden>
+  <nav class="appbar" aria-label="A안 메뉴"><button class="ab-back" type="button" data-home>처음으로</button><span class="ab-title">A안<small>상세형</small></span><button class="ab-sw" type="button" data-switch="b">B안 보기</button></nav>
+<form class="wrap" id="a-sheet" autocomplete="off">
+  <header class="top">
+    <p class="eyebrow">다이닝브랜즈그룹 SV 역량강화 교육<span>사후 자료 · 2026년 11월 3일~5일</span></p>
+    <h1>SV 현장 체크리스트</h1>
+    <div class="visit" role="group" aria-label="방문 기록">
+      <div class="vf"><label for="a-v-store">매장명</label><input id="a-v-store" data-field type="text" autocomplete="off" placeholder="예: ○○점"><span class="pv" data-for="a-v-store"></span></div>
+      <div class="vf"><label for="a-v-date">날짜</label><input id="a-v-date" data-field type="date"><span class="pv" data-for="a-v-date"></span></div>
+      <div class="vf full"><label for="a-v-issue">이슈사항</label><textarea id="a-v-issue" data-field rows="3" placeholder="날짜, 숫자, 직접 본 행동으로 적습니다"></textarea><span class="pv" data-for="a-v-issue"></span></div>
+    </div>
+    <div class="tools"><button class="btn pri" type="button" id="a-save">엑셀로 저장</button><button class="btn" type="button" id="a-share" hidden>공유</button><button class="btn" type="button" id="a-print">인쇄 (A4 2장)</button><button class="btn" type="reset" id="a-reset">모두 지우기</button><span class="status" id="a-status" role="status" aria-live="polite"></span></div>
+    <div class="core"><h2>점검하는 사람에서, 매장의 성과를 돕는 파트너로</h2><p>성과는 방문 횟수가 아니라 점주의 행동과 매장의 숫자로 말합니다. 열 가지를 말해 하나라도 실행하게 만드는 사람이 SV입니다.</p></div>
+    <p class="lede">매장에 가기 전에 펴 보고 스스로 체크하는 자료입니다. 영업·FC·팀장은 '담당 매장'을 내가 가장 자주 만나는 매장으로 읽으면 됩니다.</p>
+    <div class="fill">
+      <h3>교육 뒤 2주, 딱 하나</h3>
+      <p>나는 <span class="blank" style="--pw:80pt"><input type="text" id="a-p-role" data-field autocomplete="off" aria-label="나는 어떤 슈퍼바이저인가"><span class="pv" data-for="a-p-role"></span></span> 슈퍼바이저다. &nbsp; 어느 매장에서 <span class="blank" style="--pw:80pt"><input type="text" id="a-p-store" data-field autocomplete="off" aria-label="어느 매장에서"><span class="pv" data-for="a-p-store"></span></span> 언제까지 <span class="blank" style="--pw:80pt"><input type="text" id="a-p-due" data-field autocomplete="off" aria-label="언제까지"><span class="pv" data-for="a-p-due"></span></span></p>
+      <p>무엇을 <span class="blank w" style="--pw:170pt"><input type="text" id="a-p-what" data-field autocomplete="off" aria-label="무엇을"><span class="pv" data-for="a-p-what"></span></span> 달라질 점주의 행동과 숫자 <span class="blank w" style="--pw:170pt"><input type="text" id="a-p-change" data-field autocomplete="off" aria-label="달라질 점주의 행동과 숫자"><span class="pv" data-for="a-p-change"></span></span></p>
+      <p>2주 뒤 Action Plan 시트에 해 본 결과를 DO와 DON'T로 적습니다.</p>
+    </div>
+  </header>
+
+  <section class="block" aria-labelledby="a-h1a">
+    <h2 id="a-h1a">기억할 세 가지</h2>
+    <ol class="steps">
+      <li><b>SV의 말은 본사의 공식 입장입니다.</b>너무 가까워도, 너무 멀어도 문제가 생깁니다. 거리를 정하는 것은 성격이 아니라 계약서, 정보공개서, 매뉴얼입니다.</li>
+      <li><b>기록이 없으면 집니다.</b>설명했다, 통보했다, 동의받았다는 모두 본사가 증명해야 합니다. 기억이 아니라 문서가 남아야 합니다.</li>
+      <li><b>결과가 아니라 원인에 손댑니다.</b>"매출 올리세요"는 솔루션이 아닙니다. 원인을 찾아 점주의 행동 하나를 바꿉니다.</li>
+    </ol>
+  </section>
+
+  <section class="block" aria-labelledby="a-h1b">
+    <h2 id="a-h1b">방문 1사이클: 전, 중, 후</h2>
+    <div class="cols">
+      <div>
+        <h3 class="sub"><small>10분</small>방문 전</h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span>지난번 합의와 기한을 본다. 점주 몫과 내 몫 중 안 된 것부터</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>최근 4주 매출, 객수, 객단가에서 빠진 곳을 찾는다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>리뷰, 클레임, 점검 결과를 점주보다 먼저 안다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>본사 공지 중 이 매장 해당분과 동의·협의가 필요한 건을 확인한다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span><b>오늘 바꿀 목표 1개</b>를 정한다. 무엇을 보고 올지가 아니라 무엇을 바꾸고 올지</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub"><small>30~90분</small>방문 중</h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span>바로 들어가지 않는다. <b>3분간 고객의 눈</b>으로 정면, 입구, 동선, 응대, 메뉴판을 본다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>"요즘 어떠세요?" 대신 숫자로 연다. "지난주 저녁 주문이 빠졌던데요"</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>고객과 직원 앞에서 지적하지 않는다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>사실을 먼저 말하고 의견은 "저는 ~로 봅니다"로 나눈다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>바꿀 것 <b>딱 하나</b>를 점주와 함께 정하고, 합의한 내용을 그 자리에서 다시 확인한다</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub"><small>24시간 안에</small>방문 후</h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span><b>5칸 기록</b>을 남긴다. 통화(Sales Call)도 같다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>합의 내용을 점주에게 문자로 한 번 더 보내고 수신을 확인한다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>본사에 연결할 일은 부서와 회신 기한을 적어 넘긴다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>모르는 것은 확인 후 기한을 정해 답한다. 즉석 약속은 하지 않는다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>다음 확인일을 캘린더에 넣고, 다음 방문은 "지난번 ○○ 어떻게 됐나요?"로 시작한다</span></label></li>
+        </ul>
+      </div>
+    </div>
+    <p class="exl">5칸 기록 예시</p>
+    <dl class="five" aria-label="5칸 기록 예시">
+      <div><dt>① 사실</dt><dd>10/2 전달한 세트 POP를 10/16 방문 때까지 게시하지 않음</dd></div>
+      <div><dt>② 의견</dt><dd>저녁 피크 홀 인력 1명 부족이 객단가 하락의 원인으로 보임</dd></div>
+      <div><dt>③ 합의</dt><dd>저녁 17~20시 홀 담당 1명 추가, POP 10/18까지 게시</dd></div>
+      <div><dt>④ 다음 행동</dt><dd>SV: POP 시안 재전달<br>점주: 인력 배치</dd></div>
+      <div><dt>⑤ 기한·확인</dt><dd>10/30 방문 때 저녁 객단가를 전주와 비교</dd></div>
+    </dl>
+    <p class="note"><b>"비협조적임", "운영을 못 함"은 기록이 아닙니다.</b> 날짜, 숫자, 내가 직접 본 행동만 남깁니다. 교육에서도 "통화 녹음은 하는데 정리는 안 했다"는 말이 나왔습니다.</p>
+  </section>
+
+  <section class="block" aria-labelledby="a-h1c">
+    <h2 id="a-h1c">이렇게 바꿔 말합니다</h2>
+    <table class="tbl">
+      <thead><tr><th style="width:26%">현장에서 하는 말</th><th style="width:19%">점주가 듣는 뜻</th><th>대신 할 말</th></tr></thead>
+      <tbody>
+        <tr><td class="h">"알아볼게요."</td><td class="bad">해 주겠다고 했다</td><td>"본사에 확인해서 ○일까지 알려드리겠습니다."</td></tr>
+        <tr><td class="h">"제가 책임지고 챙기겠습니다."</td><td class="bad">손해를 보전해 준다</td><td>"제가 할 수 있는 것은 ○○이고, ○○은 본사 결정 사항입니다."</td></tr>
+        <tr><td class="h">"다른 매장도 다 합니다."</td><td class="bad">강요하고 있다</td><td>"계약서 ○조 기준으로 설명드리면, 선택하실 수 있는 안은 A와 B입니다."</td></tr>
+        <tr><td class="h">"그거 쓰면 안 돼요."</td><td class="bad">거래를 구속한다</td><td>"계약서 제○조와 정보공개서에 등재된 필수품목이 아니므로 승인할 수 없습니다."</td></tr>
+        <tr><td class="h">"본사 방침이라 어쩔 수 없어요."</td><td class="bad">협의 없이 통보한다</td><td>"○일 시행 예정이고 근거는 이렇습니다. 의견을 전달하고 ○일까지 회신드리겠습니다."</td></tr>
+        <tr><td class="h">"이 정도 매출은 나와요."</td><td class="bad">본사가 보장한다</td><td>"예상 매출은 서면 자료와 산출 근거로 설명드리겠습니다."</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block p2" aria-labelledby="a-h2a">
+    <h2 id="a-h2a">SV의 말과 행동이 법적 요건이 되는 장면</h2>
+    <table class="tbl">
+      <thead><tr><th style="width:15%">장면</th><th style="width:53%">하기 전에 확인할 것</th><th>남길 기록</th></tr></thead>
+      <tbody>
+        <tr><td class="h">계약 갱신<small>법 제13조</small></td><td><label class="ck"><input type="checkbox"><span>만료일 180·90·60일 전을 캘린더에 표시했는가. 평가 기준을 미리 알리고 같게 적용했는가. 즉석 답변을 피했는가</span></label></td><td>평가 기준 통지, 평가 결과, 서면 통지</td></tr>
+        <tr><td class="h">계약 해지<small>법 제14조</small></td><td><label class="ck"><input type="checkbox"><span>위반 사실과 "시정하지 않으면 해지"를 적은 서면을 2개월 이상 유예로 2회 이상 보냈는가. 효력 전 물품 공급 중단은 자제한다</span></label></td><td>위반 일시·품목·조항, 사진, 수신 확인, 점주 회신</td></tr>
+        <tr><td class="h">필수품목·사입</td><td><label class="ck"><input type="checkbox"><span>계약서와 정보공개서에 있는 품목인가. 로고만으로 필수품목이 되지 않는다. 강제와 권장을 구분하고, 같은 위반에는 같은 조치를 한다</span></label></td><td>사진, 근거 조항, 시정 기한, 재점검일</td></tr>
+        <tr><td class="h">광고·판촉<small>법 제12조의6</small></td><td><label class="ck"><input type="checkbox"><span>점주가 비용을 내는 행사에 사전 동의(광고 50%, 판촉 70% 이상) 또는 별도 약정이 있는가. 거부한 매장에 불이익을 말하지 않았는가</span></label></td><td>동의 시점과 방식, 미동의 점주, 집행 내역 통보</td></tr>
+        <tr><td class="h">신메뉴·공급가·품목 변경</td><td><label class="ck"><input type="checkbox"><span>공문 한 장은 협의가 아니다. 예고, 설명, 의견 수렴, 반영 회신의 순서를 밟았는가</span></label></td><td>협의 일시·방식·참석자, 점주 의견, 회신 내용</td></tr>
+        <tr><td class="h">리뉴얼·영업지역<small>법 제12조의2·4</small></td><td><label class="ck"><input type="checkbox"><span>"리뉴얼 안 하면 재계약 어렵습니다", "신규 출점 괜찮을 거예요"처럼 임의로 말하지 않았는가</span></label></td><td>객관적 사유, 점주 의사, 비용 분담 안내, 매출 변화</td></tr>
+        <tr><td class="h">가맹 상담·예상 매출<small>FC</small></td><td><label class="ck"><input type="checkbox"><span>정보공개서, 인근가맹점 현황문서, 계약서를 체결 14일 전까지 제공했는가. 매출, 수익 표현을 근거 없이 쓰지 않았는가</span></label></td><td>제공 일시, 상담 기록, 산출 근거, 확인 서명</td></tr>
+        <tr><td class="h">점주단체<small>2026.12.31 시행</small></td><td><label class="ck"><input type="checkbox"><span>등록 단체의 협의 요청에 본사는 응해야 한다. SV가 답하지 말고 즉시 법무팀과 공유한다. 단체 활동, 신고, 분쟁조정을 이유로 불이익을 암시하지 않는다</span></label></td><td>요청 일시·방법·의제, 공유 시점, 현장 동향</td></tr>
+      </tbody>
+    </table>
+    <p class="note"><b>기준 없는 거절과 기록 있는 거절은 결과가 반대였습니다.</b> 매뉴얼에 없는 의무로 갱신을 거절한 본사는 졌고, 평가 기준을 알리고 불합격 기록을 쌓은 본사는 이겼습니다. 양벌 구조라 "전달만 했다"는 통하지 않습니다. 애매하면 답하기 전에 법무팀에 묻습니다.</p>
+  </section>
+
+  <section class="block" aria-labelledby="a-h2b">
+    <h2 id="a-h2b">매출이 빠진 매장: 진단, 솔루션, 피드백 순서로</h2>
+    <div class="cols2">
+      <div>
+        <ul class="cks" style="margin-top:0">
+          <li><label class="ck"><input type="checkbox"><span><b>세 변수로 쪼갠다.</b> 매출 = 객단가 × 고객수 × 방문빈도</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span><b>바깥에서 안으로 좁힌다.</b> 상권, 입지, 상품, 운영, 점주는 마지막에</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span><b>배달은 숫자로 본다.</b> 노출, 클릭률, 전환율, 재주문율. 재주문이 낮으면 광고보다 QSC가 먼저다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span><b>시간을 나눈다.</b> 성과와 협조도로 A~D를 나눠 부진·협조(B)에 집중한다. 등급은 점주에게 보여 주지 않는다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span><b>진단이 끝나기 전에는 "하세요"를 말하지 않는다.</b> 하나만 바꾸고 숫자로 확인한다</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span><b>수단을 넓힌다.</b> 본사 자원, 운영 코칭, 계약·법률, 정부 지원 제도. 지원 제도는 신청 시점 공고로 확인하고, 안내하되 보장하지 않는다</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub">진단 질문 목록</h3>
+        <ul class="qs">
+          <li>"매출이 줄었나요, 주문수가 줄었나요? 저녁만인가요?"</li>
+          <li>"지난번 제안한 세트 POP는 어떻게 됐나요?"</li>
+          <li>"같은 상권 ○○점과 저녁 매출이 다른데, 무엇이 다른지 같이 보실까요?"</li>
+          <li>"사장님이 보시는 원인은 무엇인가요?" 내 진단과 어디가 다른지 비교한다</li>
+        </ul>
+        <h3 class="sub" style="margin-top:7px">실습 사례에서 나온 확인 항목</h3>
+        <ul class="qs">
+          <li><b>신메뉴·세트를 안 파는 매장:</b> 부자재 발주 이력, 배달앱 숨김 여부, 재고·보관 부담, 메뉴별 남는 금액</li>
+          <li><b>개선 의지가 낮은 매장:</b> 최근 6개월 매출, QSC 결과, 노후도, 운영 시간, 인력 구성, 점주의 향후 계획</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="a-h2c">
+    <h2 id="a-h2c">행동을 설계하고 돌아봅니다</h2>
+    <div class="cols">
+      <div>
+        <h3 class="sub">결과를 바꾸는 행동의 조건</h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span>점주가 할 수 있는 일인가</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>누가, 무엇을, 언제까지인가</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>원인과 연결되는가</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>무엇으로 확인하는가</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub">AAR 다섯 질문 <span style="font-weight:500;font-size:.8em;color:var(--muted)">주 1건, 10분</span></h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span>얻고자 한 것은? 얻은 것은?</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>차이와 원인은? 날씨, 상권, 점주 태도는 쓰지 않고 내 행동으로</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>해야 할 것은? 하지 말아야 할 것은?</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>5 Whys: 태도와 외부 탓이 나오면 "왜"를 더 묻는다</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub">팀장의 질문</h3>
+        <ul class="qs">
+          <li><span style="color:var(--muted)">"이번 주 몇 군데 다녀왔어?"</span><br>"점주 행동이 바뀐 매장은 어디고, 무엇이 바뀌었어?"</li>
+          <li><span style="color:var(--muted)">"왜 그랬어?"</span><br>"그때 우리가 할 수 있었던 것은?"</li>
+          <li>주간 회의에서 팀원 AAR을 1개씩 읽는다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot"><span>강의: 권민준 가맹거래사, 신윤석 변호사 · 법률 사항은 사안마다 다르므로 실제 판단은 법무팀과 함께 합니다</span></footer>
+</form>
+</div>
+
+<div class="view vb" id="view-b" hidden>
+  <nav class="appbar" aria-label="B안 메뉴"><button class="ab-back" type="button" data-home>처음으로</button><span class="ab-title">B안<small>간결형</small></span><button class="ab-sw" type="button" data-switch="a">A안 보기</button></nav>
+<form class="wrap" id="b-sheet" autocomplete="off">
+  <header class="top">
+    <p class="eyebrow">다이닝브랜즈그룹 SV 역량강화 교육<span>사후 자료 · 2026.11.3~5</span></p>
+    <h1>SV 현장 체크리스트</h1>
+    <div class="visit" role="group" aria-label="방문 기록">
+      <div class="vf"><label for="b-v-store">매장명</label><input id="b-v-store" data-field type="text" autocomplete="off" placeholder="예: ○○점"><span class="pv" data-for="b-v-store"></span></div>
+      <div class="vf"><label for="b-v-date">날짜</label><input id="b-v-date" data-field type="date"><span class="pv" data-for="b-v-date"></span></div>
+      <div class="vf full"><label for="b-v-issue">이슈사항</label><textarea id="b-v-issue" data-field rows="3" placeholder="날짜, 숫자, 직접 본 행동으로 적습니다"></textarea><span class="pv" data-for="b-v-issue"></span></div>
+    </div>
+    <div class="tools"><button class="btn pri" type="button" id="b-save">엑셀로 저장</button><button class="btn" type="button" id="b-share" hidden>공유</button><button class="btn" type="button" id="b-print">인쇄 (A4 2장)</button><button class="btn" type="reset" id="b-reset">모두 지우기</button><span class="status" id="b-status" role="status" aria-live="polite"></span></div>
+    <div class="core"><h2>오늘 딱 하나, 점주 행동 바꾸고 나오기</h2><p>성과 = 점주 행동 + 매장 숫자</p></div>
+    <div class="fill">
+      <h3>내 2주 약속</h3>
+      <div class="fld">나는<i style="--pw:139pt"><input type="text" id="b-p-role" data-field autocomplete="off" aria-label="나는 어떤 슈퍼바이저인가"><span class="pv" data-for="b-p-role"></span></i>슈퍼바이저</div>
+      <div class="fld">매장<i style="--pw:71.5pt"><input type="text" id="b-p-store" data-field autocomplete="off" aria-label="매장"><span class="pv" data-for="b-p-store"></span></i>언제까지<i style="--pw:71.5pt"><input type="text" id="b-p-due" data-field autocomplete="off" aria-label="언제까지"><span class="pv" data-for="b-p-due"></span></i></div>
+      <div class="fld">바꿀 것 1개<i style="--pw:162.5pt"><input type="text" id="b-p-what" data-field autocomplete="off" aria-label="바꿀 것 1개"><span class="pv" data-for="b-p-what"></span></i></div>
+      <div class="fld">확인할 숫자<i style="--pw:160.5pt"><input type="text" id="b-p-num" data-field autocomplete="off" aria-label="확인할 숫자"><span class="pv" data-for="b-p-num"></span></i></div>
+    </div>
+  </header>
+
+  <section class="block" aria-label="기억할 세 가지">
+    <div class="three">
+      <div class="key"><b>내 말 = 본사 입장</b><span>거리는 계약서·매뉴얼로</span></div>
+      <div class="key"><b>기록 없으면 진다</b><span>입증은 본사 몫</span></div>
+      <div class="key"><b>결과 말고 원인</b><span>"매출 올리세요" 금지</span></div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="b-h1b">
+    <h2 id="b-h1b">방문 1사이클</h2>
+    <div class="three">
+      <div>
+        <h3 class="sub">방문 전 <small>10분</small></h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span>지난번 합의·기한</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>4주 매출·객수·객단가</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>리뷰·클레임·점검 결과</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>이 매장 해당 공지</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span><b>오늘 바꿀 것 1개</b></span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub">방문 중 <small>30~90분</small></h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span><b>들어가기 전 3분</b>, 고객 눈으로</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>첫마디는 숫자로<br><small>"요즘 어떠세요?" ✕</small></span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>고객·직원 앞 지적 ✕</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>사실 먼저, 의견은 따로</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span><b>바꿀 것 1개 합의</b> + 재확인</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub">방문 후 <small>24시간 안</small></h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span><b>5칸 기록</b> <small>통화도 동일</small></span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>합의 내용 문자 + 수신 확인</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>본사 연결: 부서·회신 기한</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>다음 확인일 캘린더 등록</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>다음 첫마디 "○○ 됐나요?"</span></label></li>
+        </ul>
+      </div>
+    </div>
+    <p class="line" style="break-after:avoid"><b>5칸 기록 예시</b></p>
+    <dl class="five" aria-label="5칸 기록 예시">
+      <div><dt>① 사실</dt><dd>10/2 POP, 10/16까지 미게시</dd></div>
+      <div><dt>② 의견</dt><dd>저녁 홀 1명 부족으로 봄</dd></div>
+      <div><dt>③ 합의</dt><dd>17~20시 1명 추가, POP 10/18</dd></div>
+      <div><dt>④ 다음 행동</dt><dd>SV 시안 전달, 점주 인력 배치</dd></div>
+      <div><dt>⑤ 기한·확인</dt><dd>10/30 저녁 객단가 비교</dd></div>
+    </dl>
+    <p class="line"><b>기록 ✕</b> "비협조적임" "운영 못 함" &nbsp;&nbsp; <b>기록 ○</b> 날짜, 숫자, 직접 본 행동</p>
+  </section>
+
+  <section class="block" aria-labelledby="b-h1c">
+    <h2 id="b-h1c">이 말 대신 이 말</h2>
+    <table class="tbl">
+      <thead><tr><th style="width:36%">하지 말 말</th><th>대신 할 말</th></tr></thead>
+      <tbody>
+        <tr><td class="no">알아볼게요</td><td><b>○일까지 확인해 드릴게요</b></td></tr>
+        <tr><td class="no">제가 책임질게요</td><td><b>제 권한은 ○○, ○○은 본사 결정입니다</b></td></tr>
+        <tr><td class="no">다른 매장도 다 해요</td><td><b>계약서 ○조 기준입니다. A, B 중 고르실 수 있어요</b></td></tr>
+        <tr><td class="no">그거 쓰면 안 돼요</td><td><b>계약서 ○조, 등재 품목이 아니라 승인할 수 없습니다</b></td></tr>
+        <tr><td class="no">본사 방침이에요</td><td><b>○일 시행 예정입니다. 의견 주시면 ○일까지 회신할게요</b></td></tr>
+        <tr><td class="no">이 정도 매출은 나와요</td><td><b>서면 자료와 근거로 설명드릴게요</b></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block p2" aria-labelledby="b-h2a">
+    <h2 id="b-h2a">법이 걸리는 8장면</h2>
+    <table class="tbl">
+      <thead><tr><th style="width:18%">장면</th><th>체크</th><th style="width:25%">남길 기록</th></tr></thead>
+      <tbody>
+        <tr><td class="h">갱신<small>법 제13조</small></td><td><div class="inl"><label class="ck"><input type="checkbox"><span>만료 180·90·60일 전 표시</span></label><label class="ck"><input type="checkbox"><span>평가 기준 사전 통지</span></label><label class="ck"><input type="checkbox"><span>즉답 ✕</span></label></div></td><td class="rec">기준 통지, 평가 결과, 서면</td></tr>
+        <tr><td class="h">해지<small>법 제14조</small></td><td><div class="inl"><label class="ck"><input type="checkbox"><span>위반 사실 구체적으로</span></label><label class="ck"><input type="checkbox"><span>"시정 안 하면 해지" 명시</span></label><label class="ck"><input type="checkbox"><span>서면 2회, 유예 2개월 이상</span></label><label class="ck"><input type="checkbox"><span>효력 전 공급 중단 자제</span></label></div></td><td class="rec">위반 일시·품목·조항, 사진, 수신 확인</td></tr>
+        <tr><td class="h">필수품목·사입</td><td><div class="inl"><label class="ck"><input type="checkbox"><span>계약서·정보공개서에 있나</span></label><label class="ck"><input type="checkbox"><span>강제/권장 구분</span></label><label class="ck"><input type="checkbox"><span>같은 위반, 같은 조치</span></label></div></td><td class="rec">사진, 근거 조항, 재점검일</td></tr>
+        <tr><td class="h">광고·판촉<small>법 제12조의6</small></td><td><div class="inl"><label class="ck"><input type="checkbox"><span>사전 동의 (광고 50%, 판촉 70%) 또는 별도 약정</span></label><label class="ck"><input type="checkbox"><span>거부 매장 불이익 언급 ✕</span></label></div></td><td class="rec">동의 시점·방식, 집행 내역</td></tr>
+        <tr><td class="h">신메뉴·공급가</td><td><div class="inl"><label class="ck"><input type="checkbox"><span>예고</span></label><label class="ck"><input type="checkbox"><span>설명</span></label><label class="ck"><input type="checkbox"><span>의견 수렴</span></label><label class="ck"><input type="checkbox"><span>반영 회신</span></label><span style="color:var(--muted)">공문만 ✕</span></div></td><td class="rec">일시, 참석자, 의견, 회신</td></tr>
+        <tr><td class="h">리뉴얼·영업지역<small>제12조의2·4</small></td><td><div class="inl"><label class="ck"><input type="checkbox"><span>"안 하면 재계약 어려워요" ✕</span></label><label class="ck"><input type="checkbox"><span>"출점 괜찮아요" ✕</span></label></div></td><td class="rec">사유, 점주 의사, 매출 변화</td></tr>
+        <tr><td class="h">가맹 상담<small>FC</small></td><td><div class="inl"><label class="ck"><input type="checkbox"><span>정보공개서·인근 현황·계약서, 체결 14일 전</span></label><label class="ck"><input type="checkbox"><span>근거 없는 매출·수익 표현 ✕</span></label></div></td><td class="rec">제공 일시, 상담 기록, 서명</td></tr>
+        <tr><td class="h">점주단체<small>2026.12.31 시행</small></td><td><div class="inl"><label class="ck"><input type="checkbox"><span>현장 답변 ✕</span></label><label class="ck"><input type="checkbox"><span>법무팀 즉시 공유</span></label><label class="ck"><input type="checkbox"><span>단체·신고 이유 불이익 암시 ✕</span></label></div></td><td class="rec">요청 일시·방법·의제</td></tr>
+      </tbody>
+    </table>
+    <p class="line"><b>기준 없는 거절 → 패소, 평가·기록 있는 거절 → 승소.</b> "전달만 했어요"는 안 통함(양벌규정). <b>애매하면 답하기 전에 법무팀.</b></p>
+  </section>
+
+  <section class="block" aria-labelledby="b-h2b">
+    <h2 id="b-h2b">매출 빠진 매장</h2>
+    <div class="two">
+      <div>
+        <h3 class="sub">진단 순서</h3>
+        <ol class="flow" style="list-style:none;margin:6px 0 0;padding:0">
+          <li><span><b>쪼개기</b> 객단가 × 고객수 × 방문빈도</span></li>
+          <li><span><b>좁히기</b> 상권 → 입지 → 상품 → 운영 → 점주(맨 끝)</span></li>
+          <li><span><b>배달</b> 노출 → 클릭 → 전환 → 재주문. 재주문 낮으면 QSC 먼저</span></li>
+          <li><span><b>묻기</b> 진단 끝나기 전 "하세요" ✕</span></li>
+          <li><span><b>하나만 바꾸기</b> 숫자로 확인</span></li>
+          <li><span><b>수단</b> 본사 자원 · 운영 코칭 · 계약·법률 · 정부 지원(공고 확인, 보장 ✕)</span></li>
+        </ol>
+        <div class="grade" aria-label="매장 등급과 개입">
+          <div><b>A</b>우수·협조 <span>사례 수집</span></div>
+          <div><b>B</b>부진·협조 <span>집중 지원</span></div>
+          <div><b>C</b>우수·비협조 <span>기준·기록</span></div>
+          <div><b>D</b>부진·비협조 <span>본사와 공동 대응</span></div>
+        </div>
+      </div>
+      <div>
+        <h3 class="sub">진단 질문</h3>
+        <ul class="qs dq">
+          <li>"주문수가 줄었나요? 저녁만인가요?"</li>
+          <li>"지난번 POP는 어떻게 됐나요?"</li>
+          <li>"옆 ○○점과 뭐가 다른지 같이 볼까요?"</li>
+          <li>"사장님이 보는 원인은요?"</li>
+        </ul>
+        <h3 class="sub" style="margin-top:7px">실습에서 나온 확인 항목</h3>
+        <ul class="qs">
+          <li><span class="lb">신메뉴 안 파는 매장</span><span class="sm">발주 이력 · 배달앱 숨김 · 재고 부담 · 메뉴별 남는 금액</span></li>
+          <li><span class="lb">의지 낮은 매장</span><span class="sm">6개월 매출 · QSC · 노후도 · 운영 시간 · 인력 · 향후 계획</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="b-h2c">
+    <h2 id="b-h2c">돌아보기</h2>
+    <div class="three">
+      <div>
+        <h3 class="sub">바꿀 행동 점검</h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span>점주가 할 수 있나</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>누가·무엇을·언제까지</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>원인과 연결되나</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>무엇으로 확인하나</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub">AAR <small>주 1건, 10분</small></h3>
+        <ul class="cks">
+          <li><label class="ck"><input type="checkbox"><span>얻으려던 것 / 얻은 것</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>차이와 원인 <small>내 행동만</small></span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>할 것 / 하지 말 것</span></label></li>
+          <li><label class="ck"><input type="checkbox"><span>남 탓 나오면 "왜?" 한 번 더</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub">팀장님의 질문</h3>
+        <ul class="qs">
+          <li><span class="no">몇 군데 갔어?</span><br><b>점주 뭐가 바뀌었어?</b></li>
+          <li><span class="no">왜 그랬어?</span><br><b>우리가 할 수 있던 건?</b></li>
+          <li>주간 회의에서 AAR 1건 읽기</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot"><span>강의: 권민준 가맹거래사, 신윤석 변호사 · 실제 법률 판단은 법무팀과 함께</span></footer>
+</form>
+</div>
+
+<noscript><p style="padding:20px;font-size:15px">이 앱은 스크립트가 켜진 브라우저(Chrome, Safari, 삼성 인터넷)에서 열어 주세요.</p></noscript>
+
+<!-- 앱 설치 안내 창 -->
+<div class="mdl" id="mdl" hidden role="dialog" aria-modal="true" aria-label="홈 화면에 앱 설치"><div class="mdl-bg" data-act="close"></div><div class="sheet" id="sheet"></div></div>
+
+<script>
+/* 매장현장체크리스트: 첫 화면에서 A안(상세형)·B안(간결형)을 골라 쓴다.
+   두 안의 체크·적는 칸은 원본과 같은 열쇠로 이 브라우저에 따로 남고, [엑셀로 저장]은 원본과 같은 xlsx(방문 기록·체크 항목 2시트)를 만든다.
+   - 파일로 열었을 때: PC는 내려받기, 휴대폰은 내려받기와 [공유](지원되는 휴대폰만)
+   - claude.ai 링크로 열었을 때: 저장 확인 창을 거쳐 휴대폰에 저장. 인쇄·공유 버튼은 숨긴다 */
+(function(){
+  'use strict';
+  var APP='매장현장체크리스트', TITLE='SV 현장 체크리스트';
+  var XLSX='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  var mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent));
+  var embedded=(function(){try{return window.self!==window.top}catch(e){return true}})();
+  var inLink=!!(window.claude&&typeof window.claude.use==='function');
+  var canShare=false;
+  try{canShare=!inLink&&mobile&&!!navigator.share&&!!window.File&&!!navigator.canShare&&navigator.canShare({files:[new File(['x'],'t.xlsx',{type:XLSX})]})}catch(e){}
+
+  // claude.ai 링크에서 쓰는 파일 저장 기능. 두 안이 함께 쓴다
+  var dl=null, dlReady=!inLink, dlWait=[];
+  function dlDone(d){dl=d||null;dlReady=true;var w=dlWait;dlWait=[];w.forEach(function(f){f(dl)})}
+  function onDl(f){if(dlReady)f(dl);else dlWait.push(f)}
+  if(inLink){
+    try{Promise.resolve(window.claude.use('downloads')).then(dlDone,function(){dlDone(null)})}catch(e){dlDone(null)}
+  }
+
+  function pad(n){return ('0'+n).slice(-2)}
+  function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+  var DOW='일월화수목금토';
+  function nice(v){
+    var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v);if(!m)return v;
+    var d=new Date(+m[1],m[2]-1,+m[3]);
+    return m[1]+'. '+(+m[2])+'. '+(+m[3])+'. ('+DOW.charAt(d.getDay())+')';
+  }
+  function short(v){
+    var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v);if(!m)return v;
+    var d=new Date(+m[1],m[2]-1,+m[3]);
+    return (+m[2])+'.'+(+m[3])+' ('+DOW.charAt(d.getDay())+')';
+  }
+
+  /* ───── 엑셀(xlsx) 만들기: 원본과 같다 ─────
+     xlsx는 XML 몇 개를 zip으로 묶은 것이다. 압축하지 않고(stored) 묶어도 엑셀이 그대로 연다. */
+  function utf8(s){
+    if(window.TextEncoder)return new TextEncoder().encode(s);
+    var b=unescape(encodeURIComponent(s)),u=new Uint8Array(b.length);
+    for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+    return u;
+  }
+  var CRC=null;
+  function crc32(u){
+    if(!CRC){CRC=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;CRC[n]=c>>>0}}
+    var r=0xFFFFFFFF;for(var i=0;i<u.length;i++)r=CRC[(r^u[i])&255]^(r>>>8);
+    return (r^0xFFFFFFFF)>>>0;
+  }
+  function zip(files){
+    var parts=[],central=[],off=0,now=new Date();
+    var tm=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1))&0xFFFF;
+    var dt=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate())&0xFFFF;
+    files.forEach(function(f){
+      var name=utf8(f.name), d=utf8(f.data), crc=crc32(d);
+      var h=new DataView(new ArrayBuffer(30));
+      h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);
+      h.setUint16(10,tm,true);h.setUint16(12,dt,true);h.setUint32(14,crc,true);
+      h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+      parts.push(new Uint8Array(h.buffer),name,d);
+      var c=new DataView(new ArrayBuffer(46));
+      c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);
+      c.setUint16(12,tm,true);c.setUint16(14,dt,true);c.setUint32(16,crc,true);
+      c.setUint32(20,d.length,true);c.setUint32(24,d.length,true);c.setUint16(28,name.length,true);
+      c.setUint32(42,off,true);
+      central.push(new Uint8Array(c.buffer),name);
+      off+=30+name.length+d.length;
+    });
+    var cd=0;central.forEach(function(u){cd+=u.length});
+    var e=new DataView(new ArrayBuffer(22));
+    e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);
+    e.setUint32(12,cd,true);e.setUint32(16,off,true);
+    var all=parts.concat(central,[new Uint8Array(e.buffer)]),len=0,p=0;
+    all.forEach(function(u){len+=u.length});
+    var out=new Uint8Array(len);
+    all.forEach(function(u){out.set(u,p);p+=u.length});
+    return out;
+  }
+  function esc(s){return String(s).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+  // 줄바꿈되는 칸의 행 높이: 한글은 영문보다 넓게 쳐서 줄 수를 어림한다
+  function rowHt(text,width){
+    var n=0;
+    String(text||'').split('\n').forEach(function(line){
+      var w=0;for(var i=0;i<line.length;i++)w+=line.charCodeAt(i)>=0x1100?1.8:1.05;
+      n+=Math.max(1,Math.ceil(w/(width-2)));
+    });
+    return n>1?Math.round(n*16.5+4):null;
+  }
+  // 칸 모양(styles.xml의 순서): 1 제목, 2 항목 이름, 3 적은 값(노랑), 4 날짜 값, 5 표 머리, 6 표 내용, 7 체크, 8 흐린 글씨, 9 소제목
+  function sheet(o){
+    var x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+      +'<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0"'+(o.selected?' tabSelected="1"':'')+'>'
+      +(o.freeze?'<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A2" sqref="A2"/>':'')
+      +'</sheetView></sheetViews><sheetFormatPr defaultRowHeight="16.5"/><cols>';
+    o.cols.forEach(function(w,i){x+='<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>'});
+    x+='</cols><sheetData>';
+    o.rows.forEach(function(r,ri){
+      x+='<row r="'+(ri+1)+'"'+(r.ht?' ht="'+r.ht+'" customHeight="1"':'')+'>';
+      r.c.forEach(function(c,ci){
+        if(!c)return;
+        var ref='ABCDEFGH'.charAt(ci)+(ri+1), s=c.s?' s="'+c.s+'"':'';
+        if(c.v===''||c.v==null)x+='<c r="'+ref+'"'+s+'/>';
+        else if(typeof c.v==='number')x+='<c r="'+ref+'"'+s+'><v>'+c.v+'</v></c>';
+        else x+='<c r="'+ref+'"'+s+' t="inlineStr"><is><t xml:space="preserve">'+esc(c.v)+'</t></is></c>';
+      });
+      x+='</row>';
+    });
+    x+='</sheetData>'+(o.filter?'<autoFilter ref="'+o.filter+'"/>':'')
+      +'<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>'
+      +'<pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/></worksheet>';
+    return x;
+  }
+  var STYLES='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    +'<numFmts count="1"><numFmt numFmtId="164" formatCode="yyyy\\-mm\\-dd"/></numFmts>'
+    +'<fonts count="4">'
+    +'<font><sz val="11"/><name val="맑은 고딕"/><family val="3"/><charset val="129"/></font>'
+    +'<font><b/><sz val="11"/><name val="맑은 고딕"/><family val="3"/><charset val="129"/></font>'
+    +'<font><b/><sz val="15"/><name val="맑은 고딕"/><family val="3"/><charset val="129"/></font>'
+    +'<font><sz val="10"/><color rgb="FF6B685F"/><name val="맑은 고딕"/><family val="3"/><charset val="129"/></font>'
+    +'</fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+    +'<fill><patternFill patternType="solid"><fgColor rgb="FFFBF4B0"/><bgColor indexed="64"/></patternFill></fill>'
+    +'<fill><patternFill patternType="solid"><fgColor rgb="FFF1EFE8"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    +'<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'
+    +'<border><left style="thin"><color rgb="FFD9D5CA"/></left><right style="thin"><color rgb="FFD9D5CA"/></right>'
+    +'<top style="thin"><color rgb="FFD9D5CA"/></top><bottom style="thin"><color rgb="FFD9D5CA"/></bottom><diagonal/></border></borders>'
+    +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="10">'
+    +'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    +'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+    +'<xf numFmtId="0" fontId="1" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+    +'<xf numFmtId="0" fontId="0" fillId="2" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+    +'<xf numFmtId="164" fontId="0" fillId="2" borderId="1" xfId="0" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="top"/></xf>'
+    +'<xf numFmtId="0" fontId="1" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>'
+    +'<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+    +'<xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>'
+    +'<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+    +'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+    +'</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  function b64(u){var s='';for(var i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+  // 화면 글자 그대로 옮긴다: <br>은 띄어쓰기로, <small>은 앞에 한 칸 띄우거나(괄호) 뺀다
+  function text(el,small){
+    if(!el)return '';
+    var c=el.cloneNode(true);
+    [].slice.call(c.querySelectorAll('br')).forEach(function(n){n.parentNode.replaceChild(document.createTextNode(' '),n)});
+    [].slice.call(c.querySelectorAll('small')).forEach(function(n){
+      if(small==='drop')n.parentNode.removeChild(n);
+      else n.parentNode.replaceChild(document.createTextNode(small==='paren'?' ('+n.textContent.trim()+')':' '+n.textContent),n);
+    });
+    return c.textContent.replace(/\s+/g,' ').trim();
+  }
+
+  /* ───── 체크리스트 한 장(A안 또는 B안). 원본 스크립트를 화면 하나 안에서만 움직이게 옮겼다 ───── */
+  function Checklist(root,P,KEY,onChange){
+    function $(id){return document.getElementById(P+id)}
+    function bare(x){return x.id.slice(P.length)} // 저장할 때는 원본과 같은 이름(v-store 등)을 쓴다
+    var boxes=[].slice.call(root.querySelectorAll('.ck input'));
+    var fields=[].slice.call(root.querySelectorAll('[data-field]'));
+    var store=$('v-store'), date=$('v-date'), issue=$('v-issue'), status=$('status');
+    var canStore=(function(){try{localStorage.setItem(KEY+':t','1');localStorage.removeItem(KEY+':t');return true}catch(e){return false}})();
+    function shown(){return !root.hidden}
+
+    function state(){
+      var f={};fields.forEach(function(x){f[bare(x)]=x.value});
+      return {checks:boxes.map(function(b){return b.checked}),f:f};
+    }
+    function apply(s){
+      if(!s)return;
+      var c=Array.isArray(s)?s:(s.checks||[]); // 처음 버전은 체크만 배열로 저장했다
+      boxes.forEach(function(b,i){b.checked=!!c[i]});
+      if(Array.isArray(s))return;
+      var f=s.f||{'v-store':s.store,'v-date':s.date,'v-issue':s.issue}; // 그다음 버전은 방문 기록 세 칸만 따로 저장했다
+      fields.forEach(function(x){x.value=f[bare(x)]||''});
+    }
+    function read(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+    function write(){try{localStorage.setItem(KEY,JSON.stringify(state()))}catch(e){}if(onChange)onChange()}
+
+    function grow(){if(!shown())return;issue.style.height='auto';issue.style.height=issue.scrollHeight+'px'}
+    function pv(x){return root.querySelector('.pv[data-for="'+x.id+'"]')}
+
+    // 인쇄할 때 이슈사항이 정해진 줄 수(--pv-lines)를 넘으면 글자를 조금씩 줄여 A4 2장을 지킨다
+    var meas=document.createElement('div');
+    meas.className='pv-meas';meas.setAttribute('aria-hidden','true');
+    meas.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;width:var(--pv-w);font-weight:500;line-height:1.5;letter-spacing:-.01em;white-space:pre-wrap;overflow-wrap:anywhere;word-break:keep-all';
+    root.appendChild(meas);
+    function fit(){
+      if(!shown())return;
+      var cs=getComputedStyle(root);
+      var base=parseFloat(cs.getPropertyValue('--pv-fs'))||10, lines=parseFloat(cs.getPropertyValue('--pv-lines'))||3;
+      var room=base*1.5*lines*96/72+1, steps=[1,.93,.86,.8,.75], scale=1;
+      meas.textContent=issue.value;
+      for(var i=0;i<steps.length;i++){
+        scale=steps[i];meas.style.fontSize=(base*scale)+'pt';
+        if(meas.getBoundingClientRect().height<=room)break;
+      }
+      pv(issue).style.setProperty('--issue-scale',String(scale));
+    }
+    // 2주 약속의 빈 줄: 인쇄 폭(--pw)보다 길게 적으면 글자를 줄여 한 줄에 넣는다. 너무 길면 줄을 바꾼다
+    var mline=document.createElement('span');
+    mline.className='pv-meas';mline.setAttribute('aria-hidden','true');
+    mline.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font-weight:500';
+    root.appendChild(mline);
+    function fitLine(x){
+      if(!shown())return;
+      var p=pv(x);if(!p)return;
+      var pw=parseFloat(getComputedStyle(p.parentNode).getPropertyValue('--pw'));if(!pw)return;
+      var fs=parseFloat(getComputedStyle(root).getPropertyValue('--pfs'))||9;
+      mline.style.fontSize=fs+'pt';mline.textContent=x.value;
+      var w=mline.getBoundingClientRect().width*72/96+6, k=w>pw?Math.max(.7,pw/w):1;
+      p.style.setProperty('--fit',k.toFixed(3));
+      if(w*k>pw+1)p.classList.add('wrap');else p.classList.remove('wrap');
+    }
+    function docTitle(){
+      var name=[store.value.trim(),date.value].filter(Boolean).join('_');
+      return name?'SV체크리스트_'+name:TITLE;
+    }
+    // 인쇄용 글자, 탭 제목(PDF로 저장할 때 파일 이름이 된다), 입력칸 높이를 맞춘다
+    function sync(){
+      fields.forEach(function(x){var p=pv(x);if(p)p.textContent=x.type==='date'?nice(x.value):x.value});
+      if(shown())document.title=docTitle();
+      grow();fit();fields.forEach(fitLine);
+    }
+    function fname(){
+      var s=store.value.trim().replace(/[\\\/:*?"<>|]+/g,'').replace(/\s+/g,'_')||'매장';
+      return 'SV체크리스트_'+s+'_'+(date.value||ymd(new Date()))+'.xlsx';
+    }
+
+    // 상태 줄. 지운 직후에는 [되돌리기]를 함께 보여 준다
+    var undo=null, undoTimer=0;
+    function say(msg,withUndo){
+      status.textContent=msg;
+      if(!withUndo)return;
+      var b=document.createElement('button');
+      b.type='button';b.className='link';b.textContent='되돌리기';
+      b.addEventListener('click',function(){
+        apply(undo);write();sync();undo=null;clearTimeout(undoTimer);
+        say('지운 내용을 되돌렸습니다.');
+      });
+      status.appendChild(document.createTextNode(' '));status.appendChild(b);
+    }
+
+    function labelOf(x){
+      var l=document.querySelector('label[for="'+x.id+'"]');
+      return l?text(l):(x.getAttribute('aria-label')||bare(x));
+    }
+    function workbook(){
+      // 체크 항목: 구분(섹션) · 세부(열 제목이나 표의 장면) · 항목 · 체크
+      var list=boxes.map(function(b){
+        var sec=b.closest('section'), h2=sec&&sec.querySelector('h2'), tr=b.closest('tr'), sub='';
+        if(tr)sub=text(tr.querySelector('.h'),'paren');
+        else{var colEl=b.closest('.cols>div,.cols2>div,.three>div,.two>div');sub=text(colEl&&colEl.querySelector('h3.sub'),'drop')}
+        return {g:h2?text(h2):(sec&&sec.getAttribute('aria-label'))||'',s:sub,t:text(b.closest('label').querySelector('span')),on:b.checked};
+      });
+      var done=list.filter(function(i){return i.on}).length;
+      var rows2=[{c:[{v:'구분',s:5},{v:'세부',s:5},{v:'항목',s:5},{v:'체크',s:5}],ht:20}];
+      list.forEach(function(i){
+        rows2.push({c:[{v:i.g,s:6},{v:i.s,s:6},{v:i.t,s:6},{v:i.on?'✓':'',s:7}],ht:Math.max(rowHt(i.t,62)||0,rowHt(i.g,26)||0,rowHt(i.s,20)||0)||null});
+      });
+      // 방문 기록: 매장명·날짜·이슈사항, 교육 뒤 2주 약속, 체크 수, 저장 시각
+      var now=new Date(), dv=null, m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(date.value);
+      if(m)dv=Date.UTC(+m[1],m[2]-1,+m[3])/86400000+25569; // 엑셀 날짜 일련번호
+      var rows1=[
+        {c:[{v:'SV 현장 체크리스트 방문 기록',s:1}],ht:24},
+        {c:[{v:[].map.call(root.querySelector('.eyebrow').childNodes,function(n){return n.textContent.trim()}).filter(Boolean).join(' · '),s:8}]},
+        {c:[]},
+        {c:[{v:labelOf(store),s:2},{v:store.value,s:3}]},
+        {c:[{v:labelOf(date),s:2},dv?{v:dv,s:4}:{v:'',s:3}]},
+        {c:[{v:labelOf(issue),s:2},{v:issue.value,s:3}],ht:rowHt(issue.value,70)},
+        {c:[]},
+        {c:[{v:text(root.querySelector('.fill h3')),s:9}]}
+      ];
+      fields.forEach(function(x){
+        if(x===store||x===date||x===issue)return;
+        rows1.push({c:[{v:labelOf(x),s:2},{v:x.value,s:3}],ht:rowHt(x.value,70)});
+      });
+      rows1.push({c:[]},
+        {c:[{v:'체크한 항목',s:2},{v:done+'개 / 전체 '+list.length+'개',s:6}]},
+        {c:[{v:'저장 시각',s:2},{v:ymd(now)+' '+pad(now.getHours())+':'+pad(now.getMinutes()),s:6}]});
+
+      var last=rows2.length;
+      return zip([
+        {name:'[Content_Types].xml',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+          +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>'
+          +'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+          +'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+          +'<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+          +'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+        {name:'_rels/.rels',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+          +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+        {name:'xl/workbook.xml',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+          +'<bookViews><workbookView activeTab="0"/></bookViews><sheets><sheet name="방문 기록" sheetId="1" r:id="rId1"/><sheet name="체크 항목" sheetId="2" r:id="rId2"/></sheets>'
+          +'<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">\'체크 항목\'!$A$1:$D$'+last+'</definedName></definedNames></workbook>'},
+        {name:'xl/_rels/workbook.xml.rels',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+          +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+          +'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'
+          +'<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'},
+        {name:'xl/styles.xml',data:STYLES},
+        {name:'xl/worksheets/sheet1.xml',data:sheet({cols:[22,70],rows:rows1,selected:true})},
+        {name:'xl/worksheets/sheet2.xml',data:sheet({cols:[26,20,62,7],rows:rows2,freeze:true,filter:'A1:D'+last})}
+      ]);
+    }
+
+    function save(){
+      var name=fname(), bytes;
+      try{bytes=workbook()}catch(e){say('엑셀 파일을 만들지 못했습니다. 페이지를 새로 고친 뒤 다시 눌러 주세요.');return}
+      if(inLink){
+        if(!dl){say(dlReady?'이 화면에서는 파일 저장이 되지 않습니다. 적은 내용은 자동으로 남습니다.':'저장을 준비하고 있습니다. 잠시 뒤 다시 눌러 주세요.');return}
+        say('저장 확인 창에서 저장을 눌러 주세요.');
+        dl.save({filename:name,data:bytes}).then(function(){
+          say(name+' 파일을 저장했습니다.');
+        },function(e){
+          var c=e&&e.code;
+          say(c==='declined'?'저장을 취소했습니다.':c==='rate_limited'?'저장 창이 이미 열려 있습니다. 잠시 뒤 다시 눌러 주세요.'
+            :c==='extension_not_enabled'||c==='rejected_extension'?'이 화면에서는 엑셀 파일 저장이 막혀 있습니다. PC에서 체크리스트 파일로 저장해 주세요.'
+            :'이 화면에서는 파일 저장이 되지 않습니다. 적은 내용은 자동으로 남습니다.');
+        });
+        return;
+      }
+      var a=document.createElement('a'), url;
+      // 휴대폰의 파일 보기 화면처럼 http(s)가 아닌 곳에서는 blob 주소가 안 받아지는 경우가 있어 data 주소로 내려받는다
+      if(mobile&&!/^https?:$/.test(location.protocol)){
+        url='data:'+XLSX+';base64,'+b64(bytes);
+      }else{
+        url=URL.createObjectURL(new Blob([bytes],{type:XLSX}));
+        setTimeout(function(){URL.revokeObjectURL(url)},10000);
+      }
+      a.href=url;a.download=name;a.rel='noopener';
+      document.body.appendChild(a);a.click();a.parentNode.removeChild(a);
+      if(embedded)say(name+' 저장을 시도했습니다. 받아지지 않았다면 미리보기 화면이라 막힌 것입니다. 파일을 Chrome이나 Safari에서 열어 주세요.');
+      else if(mobile)say(name+' 파일을 내려받았습니다. 휴대폰의 다운로드 폴더에서 확인하세요.'+(canShare?' 안 보이면 [공유]로 카카오톡이나 드라이브에 보내세요.':''));
+      else say(name+' 파일을 내려받았습니다.');
+    }
+    function share(){
+      var name=fname(), file;
+      try{file=new File([workbook()],name,{type:XLSX})}catch(e){return save()}
+      say('저장할 곳을 고르세요. 아이폰은 ‘파일에 저장’, 카카오톡은 ‘나와의 채팅’으로 보내면 됩니다.');
+      navigator.share({files:[file],title:name}).then(function(){
+        say(name+' 파일을 보냈습니다.');
+      },function(e){
+        say(e&&e.name==='AbortError'?'보내기를 취소했습니다.':'이 화면에서는 공유가 막혀 있습니다. [엑셀로 저장]을 눌러 주세요.');
+      });
+    }
+
+    // 모두 지우기: 폼 기본 동작 대신 직접 지우고, 잘못 눌렀으면 바로 되돌릴 수 있다
+    $('reset').addEventListener('click',function(e){
+      e.preventDefault();
+      undo=state();
+      boxes.forEach(function(b){b.checked=false});
+      fields.forEach(function(x){x.value=''});
+      write();sync();
+      say('체크와 적은 내용을 모두 지웠습니다.',true);
+      clearTimeout(undoTimer);
+      undoTimer=setTimeout(function(){undo=null;var l=status.querySelector('.link');if(l)l.parentNode.removeChild(l)},20000);
+    });
+    $('sheet').addEventListener('submit',function(e){e.preventDefault()});
+    if(inLink)$('print').hidden=true;
+    onDl(function(d){if(inLink&&!d){$('save').hidden=true;say('이 화면에서는 파일 저장이 되지 않습니다. 적은 내용은 자동으로 남습니다.')}});
+
+    if(canStore)apply(read());
+    sync();
+    if(canShare)$('share').hidden=false;
+    if(canStore)say('적은 내용은 이 휴대폰(브라우저)에 자동으로 남습니다. 매장별로 보관하려면 엑셀로 저장하세요.');
+    else say(embedded?'미리보기 화면에서는 자동 보관과 파일 저장이 막힐 수 있습니다. 파일을 Chrome이나 Safari에서 열어 쓰세요.':'이 화면에서는 자동 보관이 되지 않습니다. 엑셀로 저장해 두세요.');
+
+    boxes.forEach(function(b){b.addEventListener('change',write)});
+    fields.forEach(function(x){
+      x.addEventListener('input',function(){sync();write()});
+      x.addEventListener('change',function(){sync();write()});
+    });
+    $('save').addEventListener('click',save);
+    $('share').addEventListener('click',share);
+    $('print').addEventListener('click',function(){sync();window.print()});
+    window.addEventListener('beforeprint',function(){if(shown())sync()});
+    window.addEventListener('resize',grow);
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(sync);
+
+    return {
+      refresh:sync,
+      title:docTitle,
+      summary:function(){
+        return {done:boxes.filter(function(b){return b.checked}).length,total:boxes.length,store:store.value.trim(),date:date.value,
+          any:boxes.some(function(b){return b.checked})||fields.some(function(x){return x.value.trim()})};
+      }
+    };
+  }
+
+  /* ───── 첫 화면과 화면 전환 (#a, #b. 없으면 첫 화면) ───── */
+  var home=document.getElementById('home');
+  var views={a:document.getElementById('view-a'),b:document.getElementById('view-b')};
+  var apis={};
+  function renderHome(){
+    ['a','b'].forEach(function(v){
+      var s=apis[v].summary(), card=home.querySelector('.pick[data-go="'+v+'"]');
+      card.querySelector('.pbar i').style.width=(s.total?Math.round(s.done/s.total*100):0)+'%';
+      card.querySelector('.m-l').innerHTML='체크 <b>'+s.done+'</b> / '+s.total;
+      var where=[s.store,s.date?short(s.date):''].filter(Boolean).join(' · ');
+      card.querySelector('.m-r').textContent=where||(s.any?'작성 중':'아직 기록 없음');
+      card.setAttribute('aria-label',(v==='a'?'A안 상세형':'B안 간결형')+' 열기. 체크 '+s.done+'개 / '+s.total+'개'+(where?', '+where:''));
+    });
+  }
+  apis.a=Checklist(views.a,'a-','sv-checklist-261105',function(){});
+  apis.b=Checklist(views.b,'b-','sv-checklist-261105-v2',function(){});
+
+  var cur='';
+  function show(v){
+    if(v!=='a'&&v!=='b')v='';
+    var changed=v!==cur;
+    home.hidden=!!v;views.a.hidden=v!=='a';views.b.hidden=v!=='b';
+    cur=v;
+    if(v){apis[v].refresh();document.title=apis[v].title()}
+    else{renderHome();document.title=APP}
+    if(changed){try{window.scrollTo(0,0)}catch(e){}}
+  }
+  function route(){show((location.hash||'').replace(/^#/,''))}
+  // 첫 화면에서 고르면 기록을 하나 쌓아 휴대폰 [뒤로]가 첫 화면으로 오게 한다. 안끼리 바꾸거나 처음으로 갈 때는 기록을 바꿔치기한다
+  function go(v,push){
+    try{
+      if(push)location.hash=v;
+      else location.replace('#'+v);
+    }catch(e){}
+    show(v);
+  }
+  [].forEach.call(document.querySelectorAll('.pick[data-go]'),function(b){
+    b.addEventListener('click',function(){go(b.getAttribute('data-go'),true)});
+  });
+  [].forEach.call(document.querySelectorAll('[data-switch]'),function(b){
+    b.addEventListener('click',function(){go(b.getAttribute('data-switch'),false)});
+  });
+  [].forEach.call(document.querySelectorAll('[data-home]'),function(b){
+    b.addEventListener('click',function(){go('',false)});
+  });
+  window.addEventListener('hashchange',route);
+  window.addEventListener('pageshow',function(){if(!cur)renderHome()});
+
+  /* ───── 홈 화면에 앱 설치 (버거게임과 같은 방식) ─────
+     안드로이드 Chrome: 설치할 수 있게 되면 버튼이 [앱 바로 설치하기]로 바뀌고 누르면 설치 창이 뜬다
+     그 밖(아이폰, 삼성 인터넷, 카카오톡 안 화면 등): 기기에 맞는 순서 안내와 [Chrome에서 열기]·[Safari로 열기] */
+  var installEvt=null, installOpen=false;
+  var UA=navigator.userAgent;
+  var ENV={ios:/iPhone|iPad|iPod/i.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),android:/Android/i.test(UA),kakao:/KAKAOTALK/i.test(UA),
+    samsung:/SamsungBrowser/i.test(UA),inapp:/; wv\)|NAVER\(|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|BAND\//i.test(UA)};
+  function isStandalone(){try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}}
+  var instBtn=document.getElementById('btn-install'), mdl=document.getElementById('mdl'), sheetEl=document.getElementById('sheet');
+  function renderInstallBtn(){
+    instBtn.hidden=isStandalone();
+    instBtn.innerHTML=installEvt?'앱 바로 설치하기 <small>탭 한 번으로 설치</small>':'홈 화면에 앱 설치하기 <small>아이콘으로 바로 열기</small>';
+    instBtn.classList.toggle('ready',!!installEvt);
+  }
+  function openModal(html){
+    sheetEl.innerHTML=html;mdl.hidden=false;installOpen=true;
+    var f=sheetEl.querySelector('[data-focus]');if(f){try{f.focus()}catch(e){}}
+  }
+  function closeModal(){mdl.hidden=true;installOpen=false;try{instBtn.focus()}catch(e){}}
+  function chromeIntentURL(){
+    var u=new URL(location.href);u.searchParams.set('install','1');u.hash='';
+    return 'intent://'+u.host+u.pathname+u.search+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(u.href)+';end';
+  }
+  var iconBox='<div class="iconbox"><img src="icons/apple-touch-icon.png" alt="" width="56" height="56"><b>매장현장체크리스트</b></div>';
+  function showInstallReady(){
+    openModal('<p class="m-eb">홈 화면에 앱 설치</p><h2>지금 바로 설치할 수 있어요</h2>'+iconBox
+      +'<p>[설치하기]를 누르고, 뜨는 창에서 [설치]를 누르면 홈 화면에 <b>매장현장체크리스트</b> 아이콘이 생겨요.</p>'
+      +'<div class="m-btns"><button class="mb pri" type="button" data-act="do-install" data-focus>설치하기</button><button class="mb" type="button" data-act="close">나중에</button></div>');
+  }
+  function showInstallGuide(){
+    var warn='', steps, btns='<button class="mb pri" type="button" data-act="close" data-focus>확인</button>';
+    function chromeBtn(pri){return '<button class="mb'+(pri?' pri':'')+'" type="button" data-act="open-chrome"'+(pri?' data-focus':'')+'>Chrome에서 열기</button>'}
+    var closeBtn='<button class="mb" type="button" data-act="close">닫기</button>';
+    if(ENV.kakao){
+      warn='카카오톡 안의 화면에서는 설치할 수 없어요. 먼저 '+(ENV.ios?'Safari로':'Chrome으로')+' 열어 주세요.';
+      steps=ENV.ios?['아래 [Safari로 열기]를 눌러요 (안 되면 오른쪽 아래 [⋯] → [Safari로 열기])','Safari 아래쪽 [공유 □↑] → [홈 화면에 추가] → [추가]']
+        :['아래 [Chrome에서 열기]를 눌러요 (안 되면 오른쪽 위 ⋮ → [다른 브라우저로 열기])','Chrome에서 [앱 바로 설치하기] 또는 ⋮ → [홈 화면에 추가] → [설치]'];
+      btns=ENV.ios?'<button class="mb pri" type="button" data-act="open-external" data-focus>Safari로 열기</button>'+closeBtn:chromeBtn(true)+closeBtn;
+    }else if(ENV.ios){
+      if(ENV.inapp||/CriOS|FxiOS|EdgiOS/i.test(UA))warn='아이폰은 Safari에서만 홈 화면에 추가할 수 있어요. 이 주소를 Safari로 열어 주세요.';
+      steps=['Safari 아래쪽 [공유] 버튼(□↑)을 눌러요','목록에서 [홈 화면에 추가]를 눌러요','이름이 <b>매장현장체크리스트</b>인지 보고 오른쪽 위 [추가]를 눌러요'];
+    }else if(ENV.android&&ENV.inapp){
+      warn='지금은 다른 앱 안의 화면이라 설치할 수 없어요. [Chrome에서 열기]를 눌러 주세요.';
+      steps=['아래 [Chrome에서 열기]를 눌러요','Chrome에서 [앱 바로 설치하기] 또는 ⋮ → [홈 화면에 추가] → [설치]'];
+      btns=chromeBtn(true)+closeBtn;
+    }else if(ENV.android&&ENV.samsung){
+      steps=['아래쪽 메뉴 [≡]를 눌러요','[현재 페이지 추가] → [홈 화면]을 눌러요','[추가]를 누르면 홈 화면에 아이콘이 생겨요'];
+      warn='삼성 인터넷에서 추가가 안 되면 [Chrome에서 열기]로 설치해 보세요.';
+      btns='<button class="mb pri" type="button" data-act="close" data-focus>확인</button>'+chromeBtn(false);
+    }else if(ENV.android){
+      steps=['오른쪽 위 [⋮] 메뉴를 눌러요','[홈 화면에 추가] 또는 [앱 설치]를 눌러요','뜨는 창에서 [설치]를 누르면 홈 화면에 아이콘이 생겨요'];
+      warn='메뉴에 없거나 설치가 안 되면 [Chrome에서 열기]를 눌러 Chrome 앱에서 다시 해 보세요. 화면을 조금 둘러보면 이 버튼이 [앱 바로 설치하기]로 바뀌기도 해요.';
+      btns='<button class="mb pri" type="button" data-act="close" data-focus>확인</button>'+chromeBtn(false);
+    }else{
+      steps=['주소창 오른쪽의 [설치] 아이콘을 누르거나','브라우저 메뉴 → [앱 설치] 또는 [홈 화면에 추가]를 눌러요'];
+    }
+    openModal('<p class="m-eb">홈 화면에 앱 설치</p><h2>아이콘으로 바로 열기</h2>'+iconBox+(warn?'<p class="warn">'+warn+'</p>':'')
+      +'<ol>'+steps.map(function(s){return '<li>'+s+'</li>'}).join('')+'</ol>'
+      +'<p class="legend">한 번만 설치하면 다음부터는 홈 화면의 아이콘을 눌러 바로 열어요.</p><div class="m-btns">'+btns+'</div>');
+  }
+  function doInstall(){
+    var ev=installEvt;if(!ev){showInstallGuide();return}
+    installEvt=null;
+    Promise.resolve().then(function(){return ev.prompt()}).then(function(){return ev.userChoice}).catch(function(){}).then(function(){closeModal();renderInstallBtn()});
+  }
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();installEvt=e;renderInstallBtn();if(installOpen)showInstallReady()});
+  window.addEventListener('appinstalled',function(){installEvt=null;renderInstallBtn();if(installOpen)closeModal()});
+  instBtn.addEventListener('click',function(){if(installEvt)doInstall();else showInstallGuide()});
+  mdl.addEventListener('click',function(e){
+    var t=e.target.closest('[data-act]');if(!t)return;
+    var act=t.getAttribute('data-act');
+    if(act==='close')closeModal();
+    else if(act==='do-install')doInstall();
+    else if(act==='open-chrome')location.href=chromeIntentURL();
+    else if(act==='open-external')location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(location.href.split('#')[0]);
+  });
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!mdl.hidden)closeModal()});
+  renderInstallBtn();
+  // [Chrome에서 열기]로 들어온 경우(?install=1) 설치 안내를 바로 보여 준다
+  try{if(!isStandalone()&&new URLSearchParams(location.search).get('install')==='1')setTimeout(function(){if(installOpen)return;if(installEvt)showInstallReady();else showInstallGuide()},1200)}catch(e){}
+
+  route();
+})();
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
+</body>
+</html>
