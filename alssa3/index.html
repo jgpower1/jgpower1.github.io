@@ -2748,7 +2748,7 @@ async function step0() {
   s.bagIn.visible = true; const bpm = s.bagPhoto.material; bpm.depthWrite = false;                 // 뜯으면 사진이 걷히고 3D 신선육이 드러나요
   anim(.45, k => { bpm.opacity = 1 - k; }).then(() => { s.bagPhoto.visible = false; });
   s.bagPieces.forEach((p, i) => { const y0 = p.position.y; anim(.5, (k, r) => { p.position.y = y0 + Math.sin(r * Math.PI) * .09 + .035 * r; }); });
-  good(100, { obj: s.bag }); fx.sparkle(ST[0] + bgp.x, CY + .35, cz, 14); setFrac(.15);
+  good(100, { obj: s.bag }); fx.sparkle(s.g.position.x + bgp.x, CY + .35, cz, 14); setFrac(.15);
   await wait(.5);
   // --- choose the tool
   P.phase('② 물기 빼는 <b>도구</b>는?'); P.fb('');
