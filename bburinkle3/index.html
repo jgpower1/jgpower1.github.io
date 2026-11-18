@@ -2353,7 +2353,7 @@ const P = {
       pin: ['ring', many ? '<b class="o">' + where + '</b>이나 화면의 <b class="r">빨간 점선 원</b>을 ' + v : '화면의 <b class="r">빨간 점선 원</b>을 ' + v + (twin ? ' · ' + where + '도 돼요' : '')],
       pick: ['ring', many ? '알맞은 것을 <b class="o">' + where + '</b>에서 골라 ' + v : '알맞은 <b class="r">빨간 점선 원</b>' + (twin ? '(또는 ' + where + ')' : '') + '을 골라 ' + v],
       chip: ['chip', '알맞은 값을 고른 뒤 <b class="o">주황 버튼</b>을 ' + v],
-      tap: ['tap', '<b class="o">주황 버튼</b>' + (Pins.list.length ? '(또는 빨간 점선 원)' : '') + '을 여러 번 ' + v + ' · 꾹 눌러도 돼요'],
+      tap: ['tap', '<b class="o">주황 버튼</b>' + (Pins.list.length ? '(또는 빨간 점선 원)' : '') + '을 한 번만 ' + v + ' · 끝까지 자동으로 진행돼요'],
       btn: ['btn', '<b class="o">버튼</b>을 ' + v],
       next: ['next', '<b class="g">초록 버튼</b>을 ' + v],
       wait: ['wait', '조리 중이에요 · 잠깐 지켜봐 주세요']
@@ -2421,21 +2421,21 @@ async function rubSeries(o) {
     Coach.arm({ key: o.key, quiz: false, hint: o.hint || ['화면을 누른 채 좌우로 문질러요!'] });
   });
 }
-async function tapSeries(o) {
+async function tapSeries(o) {                                  // 11/18: 여러 번 누르던 동작 → 한 번만 누르면 끝까지 자동으로 진행 (연출 · 점수 · 진행 표시는 그대로)
   await P.ready();
   return new Promise(res => {
-    let k = 0, pin = null, held = false, timer = 0, rep = 0;
+    let k = 0, pin = null, run = false;
     const btn = document.createElement('button'); btn.className = 'btn primary tapbtn'; btn.innerHTML = '<span class="tl">' + o.label + '</span><em class="cnt">0/' + o.n + '</em>'; $('sCtrl').appendChild(btn);
     const cnt = btn.querySelector('.cnt');
-    const done = () => { clearTimeout(timer); clearInterval(rep); Coach.disarm(); if (pin) Pins.remove(pin); btn.remove(); res(); };
-    const hit = () => { if (k >= o.n) return; k++; cnt.textContent = k + '/' + o.n; o.onTap(k, o.n); if (k >= o.n) done(); else Coach.touch(); };
-    if (o.pin) pin = Pins.add(Object.assign({}, o.pin, { onTap: hit, panel: false }));
-    Coach.arm({ how: 'tap', key: o.key, quiz: false, point: o.pin ? [o.pin.id] : null, els: [btn], hint: o.hint || ['손가락이 가리키는 곳을 톡톡 눌러요. 꾹 누르고 있어도 돼요!'] });
-    btn.addEventListener('click', () => { Aud.init(); if (held) { held = false; return; } hit(); });
-    if (o.hold) {
-      btn.addEventListener('pointerdown', () => { held = false; timer = setTimeout(() => { held = true; Aud.init(); hit(); rep = setInterval(hit, 260); }, 380); });
-      ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, () => { clearTimeout(timer); clearInterval(rep); }));
-    }
+    const go = async () => {
+      if (run) return; run = true; Aud.init(); btn.disabled = true; btn.classList.add('run');
+      if (pin) { Pins.remove(pin); pin = null; } Coach.disarm(); P.how('wait');
+      while (k < o.n) { k++; cnt.textContent = k + '/' + o.n; o.onTap(k, o.n); if (k < o.n) await wait(o.gap || .5); }
+      await wait(.2); btn.remove(); res();
+    };
+    if (o.pin) pin = Pins.add(Object.assign({}, o.pin, { onTap: go, panel: false }));
+    Coach.arm({ how: 'tap', key: o.key, quiz: false, point: o.pin ? [o.pin.id] : null, els: [btn], hint: o.hint || ['손가락이 가리키는 곳을 한 번만 누르면 끝까지 진행돼요!'] });
+    btn.addEventListener('click', go);
   });
 }
 /* choose among 3D pins; resolves with the picked id, pins removed.
@@ -2816,7 +2816,7 @@ async function step1() {
   // --- mix
   P.phase('⑤ 믹싱볼을 탭해서 골고루 버무려요'); const met = P.meter('버무림'); mitt.visible = true;
   await tapSeries({
-    n: 7, label: '🥣 버무리기 탭!', hold: true, key: 's1mix', hint: ['버튼을 톡톡 눌러요. 부위별로 들었다가 다시 배터액에 묻혀요!'],
+    n: 7, label: '🥣 버무리기 탭!', hold: true, key: 's1mix', hint: ['버튼을 한 번 누르면 부위별로 들었다가 다시 배터액에 묻혀요!'],
     onTap: (k, n) => {
       sfx.tap(); sfx.whoosh(); const kind = TYPES[(k - 1) % TYPES.length]; let grp = s.pcs.filter(p => p.userData.kind === kind); if (!grp.length) grp = [s.pcs[(k - 1) % s.pcs.length]];
       grp.forEach(p => { if (p.userData.by === undefined) { p.userData.by = p.position.y; p.userData.rx = p.rotation.x; } });
