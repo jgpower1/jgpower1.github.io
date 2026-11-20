@@ -710,6 +710,11 @@ body.intro #hud,body.intro #sheet{visibility:hidden;overflow:hidden;padding:0;bo
 /* 패널이 넘치면 버튼 줄은 패널 아래에 붙어 있다 (버튼이 화면 밖으로 밀려나지 않게) */
 #sheet .sh-ctrl{position:sticky;bottom:0;z-index:2;background:var(--cream);padding-top:4px}
 @media (orientation:landscape) and (min-width:640px) and (max-height:560px){#sheet:has(.sh-ctrl.multi) .sh-how{display:none}#sheet .co-av{width:38px}}
+/* 💡 힌트: 정답 칩 표시 (11/20) */
+#sCtrl .chip.hint-ans{box-shadow:0 0 0 3px #ffb020,0 0 14px rgba(255,176,32,.8);animation:ansPulse 1.1s ease-in-out infinite}
+#sCtrl .chip.hint-ans::before{content:"정답";position:absolute;left:-6px;top:-12px;padding:3px 6px;border-radius:9px;background:#e8501a;color:#fff;border:2px solid var(--ink);font-size:12px;font-weight:900;line-height:1;pointer-events:none;z-index:2}
+@keyframes ansPulse{50%{box-shadow:0 0 0 5px #ffb020,0 0 22px rgba(255,176,32,.95)}}
+@media (prefers-reduced-motion:reduce){#sCtrl .chip.hint-ans{animation:none}}
 </style>
 <style id="bhc-gate-css">
 /* BHC 교육 게임 입장 양식 — 이름·점포 입력 후 입장. 굵은 외곽선 + 하드 그림자(네오브루탈리즘), 색·마스코트는 게임별로 다릅니다. */
@@ -2396,7 +2401,7 @@ const P = {
         const w = document.createElement('div'); w.className = 'grp'; w.innerHTML = '<div class="grp-t">' + gr.title + '</div><div class="chips">' + gr.opts.map(op => '<button class="chip' + (op.wide ? ' wide' : '') + '" data-g="' + gr.id + '" data-v="' + op.v + '">' + op.t + '</button>').join('') + '</div>'; ctrl.appendChild(w);
       });
       const btn = document.createElement('button'); btn.className = 'btn primary'; btn.textContent = label; btn.disabled = true; ctrl.appendChild(btn);
-      Coach.arm({ how: 'chip', key: o.key, quiz: true, hint: o.hint });
+      Coach.arm({ how: 'chip', key: o.key, quiz: true, hint: o.hint, ansEls: o.ans ? Array.from(ctrl.querySelectorAll('.chip')).filter(c => String(o.ans[c.dataset.g]) === c.dataset.v) : null });
       ctrl.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
         sfx.click(); const g = c.dataset.g; ctrl.querySelectorAll('.chip[data-g="' + g + '"]').forEach(x => x.classList.remove('on')); c.classList.add('on'); sel[g] = c.dataset.v;
         const ok = groups.every(x => sel[x.id] !== undefined); btn.disabled = !ok;
@@ -2628,19 +2633,18 @@ const Coach = (() => {
     const prev = C.last, same = prev && cfg.key && prev.key === cfg.key;
     C.disarm(); cfg.fails = same ? (prev.fails || 0) : 0; cfg.level = same ? (prev.level || 0) : 0;
     C.cfg = C.last = cfg; C.touch(); P.how(cfg.how || 'btn');
-    const show = () => { if (C.cfg !== cfg) return; if (PRO && cfg.fails < 2) return; if (cfg.fails >= 2 && cfg.ans) { cfg.level = 2; C.showPoint(cfg, 'ans'); } else if (cfg.point || (cfg.els && cfg.els.length)) C.showPoint(cfg, 'point'); };
+    const show = () => { if (C.cfg !== cfg) return; if (PRO && cfg.fails < 2) return; if (cfg.fails >= 2 && (cfg.ans || cfg.ansEls)) { cfg.level = 2; C.showAns(cfg); } else if (cfg.point || (cfg.els && cfg.els.length)) C.showPoint(cfg, 'point'); };
     cfg._t = setTimeout(show, SKIPINTRO ? 30 : 800);
   };
   C.fail = () => { if (C.last) C.last.fails = (C.last.fails || 0) + 1; };
+  C.showAns = c => { C.showPoint(c, 'ans'); (c.ansEls || []).forEach((el, i) => { el.classList.add('hint-ans'); if (i === 0) C.hand(el, 'tl'); }); };   // 정답 핀 · 정답 칩(정답 표시)
   C.useHint = auto => {
     const c = C.cfg; if (!c) { P.fb('지금은 힌트가 필요 없어요 😊 화면 안내를 따라와 주세요!', 'tip'); return; }
     const hs = c.hint || [];
-    if (c.level >= 2) { P.fb('💡 ' + (hs[1] || hs[0] || '손가락이 가리키는 곳을 눌러요!'), 'tip'); C.showPoint(c, 'ans'); return; }
-    if (auto && c.level >= 1) return;
-    c.level++; if (!auto) S.hints++;
-    C.face('think', 3200); C.touch();
-    if (c.level === 1) { P.fb('💡 ' + (hs[0] || '손가락이 가리키는 곳을 눌러요!'), 'tip'); if (!c.quiz) C.showPoint(c, 'point'); }
-    else { P.fb('💡 ' + (hs[1] || hs[0] || ''), 'tip'); C.showPoint(c, 'ans'); }
+    const ansT = hs[1] || hs[0] || '손가락이 가리키는 곳을 눌러요!';                       // 11/20: 💡 힌트를 누르면 바로 정답을 알려 줘요
+    if (auto) { if (c.level >= 1) return; c.level = 1; C.face('think', 3200); C.touch(); P.fb('💡 ' + (hs[0] || ansT), 'tip'); if (!c.quiz) C.showPoint(c, 'point'); return; }
+    if (c.level < 2) S.hints++; c.level = 2; C.face('think', 3200); C.touch();
+    P.fb('💡 ' + ansT, 'tip'); C.showAns(c);
   };
   setInterval(() => {
     const c = C.cfg; if (!c || $('mission').classList.contains('show') || $('lightbox').classList.contains('show') || $('tut').classList.contains('show')) { if (c) C.idleAt = performance.now(); return; }
@@ -2735,7 +2739,7 @@ async function step0() {
   setLook({ dry: 0, batter: 0, fry: 0, oil: 0 }); const s = buildS0();
   enter(0, '① <b>✂️ 봉지 뜯기</b>를 눌러요');
   await flyTo('s0', 0, 2.2);
-  await choosePin([{ id: 'bag', label: '봉지 뜯기', icon: '✂️', obj: s.bag, off: [0, .42, 0] }]);
+  await choosePin([{ id: 'bag', label: '봉지 뜯기', icon: '✂️', obj: s.bag, off: [0, .42, 0] }], { key: 's0bag', hint: ['신선육 봉지를 가위로 뜯어요 ✂️', '정답: 빨간 점선의 ✂️ 봉지 뜯기를 눌러 신선육 봉지를 가위로 뜯어요!'] });
   // --- tear the bag: 봉지 위쪽 밀봉 부분을 가위로 가로질러 잘라요
   const sc = s.scissors, bgp = s.bag.position, cz = bgp.z - s.bagD / 2 + .07, x0 = bgp.x - .42, yy = CY + .36;
   sc.visible = true; sc.rotation.set(0, 0, 0);
@@ -2757,7 +2761,7 @@ async function step0() {
     const id = await choosePin([
       { id: 'col', label: '체', icon: '🧺', obj: s.colander, off: [0, .52, 0] },
       { id: 'bowl', label: '믹싱볼', icon: '🥣', obj: s.bowl, off: [0, .3, 0], cls: 'alt' },
-      { id: 'cloth', label: '행주', icon: '🧻', obj: s.cloth, off: [0, .22, 0], cls: 'alt' }], { key: 's0tool', quiz: true, ans: ['col'], hint: ['매뉴얼을 다시 읽어 봐요 📖 “…체를 이용해 물기를 제거한다.”', '정답은 체예요! 🧺 손가락이 가리키는 곳을 눌러요.'] });
+      { id: 'cloth', label: '행주', icon: '🧻', obj: s.cloth, off: [0, .22, 0], cls: 'alt' }], { key: 's0tool', quiz: true, ans: ['col'], hint: ['매뉴얼을 다시 읽어 봐요 📖 “…체를 이용해 물기를 제거한다.”', '정답: 🧺 체 — 체를 이용해 물기를 제거해요! 손가락이 가리키는 곳을 눌러요.'] });
     if (id === 'col') break;
     mistake(id === 'bowl' ? '믹싱볼은 배터링 때 사용해요. 이 단계는 체를 이용해 물기를 제거해요.' : '이 단계는 체를 이용해 물기를 제거해요.', { obj: id === 'bowl' ? s.bowl : s.cloth });
     await wiggle(id === 'bowl' ? s.bowl : s.cloth, .05);
@@ -2771,7 +2775,7 @@ async function step0() {
   // --- shake the water out
   P.phase('③ <b>체</b>를 톡톡 털어 물기 빼기'); const met = P.meter('물기 제거율'); const cw = wpos(s.colander); const cx0 = s.colander.position.x;
   await tapSeries({
-    n: 6, label: '💦 물기 털기 탭!', hold: true, pin: { id: 'shake', label: '물기 털기', icon: '💦', obj: s.colander, off: [0, .52, 0] },
+    n: 6, label: '💦 물기 털기 탭!', hold: true, hint: ['정답: 💦 물기 털기를 한 번 누르면 체를 털어 물기를 빼요!'], pin: { id: 'shake', label: '물기 털기', icon: '💦', obj: s.colander, off: [0, .52, 0] },
     onTap: (k, n) => {
       sfx.drip(); sfx.whoosh(); anim(.28, (e, r) => { s.colander.position.x = cx0 + Math.sin(r * Math.PI * 4) * .05 * (1 - r); s.colander.rotation.z = Math.sin(r * Math.PI * 4) * .07 * (1 - r); }, ease.lin).then(() => { s.colander.position.x = cx0; s.colander.rotation.z = 0; });
       fx.drops(cw.x, CY + .25, cw.z, 14); s.puddle.material.opacity = Math.min(.5, k * .1); s.puddle.scale.set(1 + k * .04, .7 + k * .03, 1);
@@ -2801,7 +2805,7 @@ async function step1() {
   while (done < 3) {
     const specs = s.cuts.filter(c => !c.done).map(c => ({ id: c.key, label: c.name + ' 절각', icon: '✂️', obj: c.grp, off: [0, .24, .32] }));
     specs.push({ id: 'leg', label: '다리', icon: '✂️', obj: s.legAnchor, off: [0, .24, 0], cls: 'alt sm' });
-    const id = await choosePin(specs, { key: 's1cut', point: specs.filter(x => x.id !== 'leg').map(x => x.id), hint: ['빨간 점선이 있는 가슴 · 어깨 · 날개를 눌러요. 다리는 자르지 않아요!'] });
+    const id = await choosePin(specs, { key: 's1cut', point: specs.filter(x => x.id !== 'leg').map(x => x.id), hint: ['빨간 점선이 있는 가슴 · 어깨 · 날개를 눌러요. 다리는 자르지 않아요!', '정답: ✂️ 가슴 · 어깨 · 날개를 절각해요 (다리는 자르지 않아요!)'] });
     if (id === 'leg') { mistake('다리는 절각하지 않아요. 이 단계는 가슴 · 어깨 · 날개를 절각해요.', { obj: s.legAnchor }); await wiggle(s.legAnchor, .04); continue; }
     const c = s.cuts.find(x => x.key === id); P.fb('');
     await doCut(s, c); c.done = true; done++; dots.set(done); good(200, { obj: c.grp }); setFrac(done / 3 * .95); P.phase(cutSay(done));
@@ -2818,9 +2822,9 @@ async function step2() {
   for (; ;) {
     const a = await P.ask([
       { id: 'mix', title: '배터믹스 (g)', opts: [90, 110, 130].map(v => ({ v, t: v + 'g' })) },
-      { id: 'wat', title: '냉정수 (g)', opts: [55, 75, 95].map(v => ({ v, t: v + 'g' })) }], '계량하기 ⚖️', { key: 's2ask', hint: ['표준 비율은 정해져 있어요! 📖 매뉴얼의 사진과 설명을 다시 확인해 봐요.', '표준 비율은 배터믹스 110 : 냉정수 75예요.'] });
+      { id: 'wat', title: '냉정수 (g)', opts: [55, 75, 95].map(v => ({ v, t: v + 'g' })) }], '계량하기 ⚖️', { key: 's2ask', ans: { mix: 110, wat: 75 }, hint: ['표준은 배터믹스 110g · 냉정수 75g이에요! 📖', '정답: 배터믹스 110g · 냉정수 75g ⚖️'] });
     if (a.mix === '110' && a.wat === '75') { await P.askRight(); break; }
-    tries++; mistake(tries >= 2 ? '표준 비율은 배터믹스 110 : 냉정수 75 이에요.' : (a.mix !== '110' && a.wat !== '75' ? '배터믹스와 냉정수 양이 모두 달라요.' : a.mix !== '110' ? '배터믹스 양이 표준과 달라요.' : '냉정수 양이 표준과 달라요.') + ' 다시 선택해 보세요.', { obj: s.scale });
+    tries++; mistake(tries >= 2 ? '표준은 배터믹스 110g · 냉정수 75g 이에요.' : (a.mix !== '110' && a.wat !== '75' ? '배터믹스와 냉정수 양이 모두 달라요.' : a.mix !== '110' ? '배터믹스 양이 표준과 달라요.' : '냉정수 양이 표준과 달라요.') + ' 다시 선택해 보세요.', { obj: s.scale });
     await P.askWrong();
   }
   good(300, { obj: s.scale }); P.fb('');
@@ -2848,7 +2852,7 @@ async function step2() {
   setFrac(.4);
   // --- put the pieces in
   P.phase('③ <b>신선육</b>을 믹싱볼에 넣기'); P.fb('');
-  await choosePin([{ id: 'put', label: '물기제거 신선육 넣기', icon: '🍗', obj: s.ptray, off: [0, .3, 0] }]);
+  await choosePin([{ id: 'put', label: '물기제거 신선육 넣기', icon: '🍗', obj: s.ptray, off: [0, .3, 0] }], { key: 's2put', hint: ['배터믹스 110g · 냉정수 75g 배터액에 신선육을 넣어요!', '정답: 🍗 물기제거 신선육 넣기를 눌러요 — 배터믹스 110g · 냉정수 75g 배터액이 담긴 믹싱볼에 넣어요!'] });
   const r = mulberry32(5), tg = [];
   s.pcs.forEach((p, i) => { const a = r() * TAU, d = Math.sqrt(r()) * .24; tg.push(new THREE.Vector3(Math.cos(a) * d, .09 + (i % 4) * .05, Math.sin(a) * d)); s.bowlIn.attach(p); });
   sfx.pour();
@@ -2858,7 +2862,7 @@ async function step2() {
   P.phase('④ 부위별로 들었다 놓으며 <b>배터액 묻히기</b>'); const met = P.meter('버무림'); const mitt = s.mitt; mitt.visible = true;
   let ang = 0;
   await tapSeries({
-    n: 7, label: '🥣 버무리기 탭!', hold: true, key: 's2mix', hint: ['버튼을 한 번 누르면 부위별로 들었다가 다시 배터액에 묻혀요!'],
+    n: 7, label: '🥣 버무리기 탭!', hold: true, key: 's2mix', hint: ['정답: 🥣 버무리기를 한 번 누르면 배터믹스 110g · 냉정수 75g 배터액을 부위별로 골고루 묻혀요!'],
     onTap: (k, n) => {
       /* 한 번 누를 때마다 한 부위(2조각)를 손으로 들어 올렸다가 배터액에 다시 묻힌다 */
       sfx.tap(); sfx.whoosh(); const kind = TYPES[(k - 1) % TYPES.length]; let grp = s.pcs.filter(p => p.userData.kind === kind); if (!grp.length) grp = [s.pcs[(k - 1) % s.pcs.length]];
@@ -2914,7 +2918,7 @@ async function step3() {
   const nDone = () => TYPES.filter(t => !left[t].length).length;
   const okNow = () => { const n = nDone(); return n < 3 ? [SEQ[n]] : n < 6 ? FREE.filter(t => left[t].length) : ['wing']; };
   const loadSay = () => { const n = nDone(); return (n < 3 ? '① <b>다리 → 앞가슴 → 어깨</b> 순서로 투입' : n < 6 ? '② <b>등가슴 · 넙적다리 · 엉치</b> 투입 (순서 무관)' : '③ 마지막은 <b>날개</b>') + ' (' + loaded + '/14)'; };
-  const pointNext = () => { Coach.arm({ how: 'pin', key: 's3load', quiz: false, point: [okNow()[0]], hint: ['다리 → 앞가슴 → 어깨 순서로 넣고, 날개는 맨 마지막이에요!', '손가락이 가리키는 부위를 눌러요.'] }); };
+  const pointNext = () => { Coach.arm({ how: 'pin', key: 's3load', quiz: false, point: [okNow()[0]], hint: ['다리 → 앞가슴 → 어깨 순서로 넣고, 날개는 맨 마지막이에요!', '정답: 지금은 ‘' + okNow().map(k => NAME[k]).join(' · ') + '’ ' + (okNow().length > 1 ? '중 아무거나 넣어요 (순서 무관)' : '차례예요!') + ' 🍗 (다리 → 앞가슴 → 어깨 → 등가슴 · 넙적다리 · 엉치 → 날개)'] }); };
   P.phase(loadSay());
   await P.ready();
   await new Promise(res => {
@@ -2948,7 +2952,7 @@ async function step3() {
   for (; ;) {
     const a = await P.ask([
       { id: 't', title: '후라이어 온도 (℃)', opts: [150, 163, 175].map(v => ({ v, t: v + '℃' })) },
-      { id: 'm', title: '조리 시간 (분)', opts: [8, 10, 12].map(v => ({ v, t: v + '분' })) }], '조리 시작 🔥', { key: 's3ask', hint: ['제목을 다시 봐요 📖 “후라잉 (163℃ / 10분)” 괄호 안에 표준값이 있어요!', '표준은 163℃ / 10분이에요.'] });
+      { id: 'm', title: '조리 시간 (분)', opts: [8, 10, 12].map(v => ({ v, t: v + '분' })) }], '조리 시작 🔥', { key: 's3ask', ans: { t: 163, m: 10 }, hint: ['제목을 다시 봐요 📖 “후라잉 (163℃ / 10분)” 괄호 안에 표준값이 있어요!', '정답: 163℃ · 10분 🔥'] });
     if (a.t === '163' && a.m === '10') { await P.askRight(); break; }
     tries++; mistake(tries >= 2 ? '표준은 163℃ / 10분 이에요.' : (a.t !== '163' && a.m !== '10' ? '온도와 시간이 모두 표준과 달라요.' : a.t !== '163' ? '온도가 표준과 달라요.' : '시간이 표준과 달라요.') + ' 다시 선택해 보세요.', { obj: s.oil });
     await P.askWrong();
@@ -2969,7 +2973,7 @@ async function step4() {
   await flyTo('s3shake', 3, 1.5);
   let tries = 0;
   for (; ;) {
-    const a = await P.ask([{ id: 't', title: '흔들기 시점 (투입 후)', opts: [{ v: 30, t: '30초' }, { v: 60, t: '1분' }, { v: 120, t: '2분' }] }], '선택 확인', { key: 's4ask', hint: ['제목을 봐요 📖 “흔들기 (투입 30초 후)”', '정답은 투입 30초 후예요.'] });
+    const a = await P.ask([{ id: 't', title: '흔들기 시점 (투입 후)', opts: [{ v: 30, t: '30초' }, { v: 60, t: '1분' }, { v: 120, t: '2분' }] }], '선택 확인', { key: 's4ask', ans: { t: 30 }, hint: ['제목을 봐요 📖 “흔들기 (투입 30초 후)”', '정답: 투입 30초 후 ⏱'] });
     if (a.t === '30') { await P.askRight(); break; }
     tries++; mistake(tries >= 2 ? '투입 30초 후에 흔들어 주세요.' : '너무 늦어요! 그 사이 조각끼리 달라붙어요. 다시 선택해 보세요.', { obj: s.oil });
     await P.askWrong();
@@ -3006,7 +3010,7 @@ async function step4() {
     scooped++; met.set(scooped / n); setFrac(.2 + .75 * scooped / n);
   };
   await tapSeries({
-    n: 6, label: '🥄 뜰채로 떠서 흔들기!', hold: true, pin: { id: 'shk', label: '흔들기', icon: '🥄', obj: s.oil },
+    n: 6, label: '🥄 뜰채로 떠서 흔들기!', hold: true, hint: ['정답: 🥄 흔들기를 한 번 누르면 뜰채로 조각을 떠서 흔들어 떼어 줘요! (투입 30초 후)'], pin: { id: 'shk', label: '흔들기', icon: '🥄', obj: s.oil },
     onTap: (k, n) => { award(50, { obj: s.oil, sm: true }); chain = chain.then(() => scoop(k - 1, n)); }
   });
   P.phase('② 마지막 조각까지 떼는 중…'); await chain;
@@ -3047,7 +3051,7 @@ async function legWork(s, e, no, total) {
     P.phase('④ 다리 ' + no + '/' + total + ' · <b>혈작업</b>: 나이프를 다리 <b>가로</b>로 쭉 넣었다 빼요 🔪'); sfx.whoosh();
     await anim(.5, k => { kn.position.lerpVectors(k0, k1, k); kn.position.y += .1 * (1 - k); }); await fly;
     const tgt = mk(new THREE.SphereGeometry(.05, 8, 6), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }), END, 0, 0, { cast: false }); p.add(tgt);
-    await choosePin([{ id: 'blood', label: '칼 넣기', icon: '🔪', obj: tgt, off: [0, .1, 0] }], { key: 'blood', hint: ['다리 끝의 빨간 점선(또는 아래 버튼)을 눌러 칼을 넣어요!'] });
+    await choosePin([{ id: 'blood', label: '칼 넣기', icon: '🔪', obj: tgt, off: [0, .1, 0] }], { key: 'blood', hint: ['다리 끝의 빨간 점선(또는 아래 버튼)을 눌러 칼을 넣어요!', '정답: 다리 끝 빨간 점선의 🔪 칼 넣기를 눌러요 — 나이프를 다리 가로로 쭉 넣었다 빼요!'] });
     p.remove(tgt); P.fb('');
     sfx.whoosh(); await anim(1.2, k => kn.position.lerpVectors(k1, k2, k), ease.io);                  // 쭈욱 — 다리 가로로 깊게
     sfx.poke(); await anim(.35, k => { kn.rotation.x = ROLL + Math.sin(k * Math.PI * 2) * .14; }, ease.lin); kn.rotation.x = ROLL;
@@ -3064,7 +3068,7 @@ async function legWork(s, e, no, total) {
     const dots = P.dots(4); let pokes = 0, fin = null, finP = null; const px = [.03, .1, .06, .13];
     while (pokes < 4) {
       const spec = { id: 'poke', label: '찌르기', icon: '🔪', obj: p, off: [.34, .02, .16] };
-      if (pokes === 0) { await choosePin([spec], { key: 'poke', hint: ['찌르기를 한 번만 누르면 앞뒤로 찔러 크랙킹해요!'] }); P.how('wait'); } else await wait(.3);   // 한 번 누르면 4회 자동
+      if (pokes === 0) { await choosePin([spec], { key: 'poke', hint: ['정답: 🔪 찌르기를 한 번 누르면 나이프로 앞뒤 3~4회 찔러 크랙킹해요!'] }); P.how('wait'); } else await wait(.3);   // 한 번 누르면 4회 자동
       pokes++; dots.set(pokes); P.fb(''); P.phase(pokeSay(pokes));
       const up = pokes <= 2 ? 1 : -1, mx = px[pokes - 1], mz = (pokes % 2 ? -1 : 1) * .016, a2 = surf(mx, up * legR(mx), mz);
       kn.rotation.set(0, 0, -Math.PI / 2); kn.position.set(a2.x, a2.y + .8, a2.z); sfx.whoosh();
@@ -3098,7 +3102,7 @@ async function step5() {
   enter(5, '① <b>🔥 조리중</b>을 눌러 <b>5분</b>까지'); P.fb('');
   await flyTo('s3fry', 3, 1.4);
   const cookTap = (from, to, id, base) => tapSeries({
-    n: 6, label: '🔥 조리중 ▶▶', hold: true, pin: { id, label: '조리중', icon: '🔥', obj: s.oil, off: [0, .5, 0] },
+    n: 6, label: '🔥 조리중 ▶▶', hold: true, hint: ['정답: 🔥 조리중을 한 번 누르면 ' + Math.round(to / 60) + '분까지 조리돼요!'], pin: { id, label: '조리중', icon: '🔥', obj: s.oil, off: [0, .5, 0] },
     onTap: (k, n) => { S.fry.target = from + (to - from) * k / n; sfx.splash(); const o = wpos(s.oil); fx.bubbles(o.x, o.y + .02, o.z, 1.2, .7, 26, 1.5); award(25, { obj: s.oil, sm: true }); setFrac(base + .1 * k / n); }
   });
   await cookTap(30, 300, 'cook', 0);
@@ -3109,7 +3113,7 @@ async function step5() {
   P.phase('② <b>혈작업</b> 부위는?'); P.fb('');
   const first = {}; s.fryPcs.forEach(e => { if (!first[e.type]) first[e.type] = e; });
   for (; ;) {
-    const id = await choosePin(TYPES.map((k, i) => ({ id: k, label: NAME[k], icon: '', obj: first[k].w, off: [0, .22 + (i % 2) * .2, 0], cls: 'sm tiny' })), { key: 's5part', quiz: true, ans: ['leg'], hint: ['매뉴얼을 다시 읽어 봐요 📖 “…다리를 한 조각씩 건져 혈작업을 진행하고…”', '혈작업은 다리에 해요! 손가락이 가리키는 곳을 눌러요.'] });
+    const id = await choosePin(TYPES.map((k, i) => ({ id: k, label: NAME[k], icon: '', obj: first[k].w, off: [0, .22 + (i % 2) * .2, 0], cls: 'sm tiny' })), { key: 's5part', quiz: true, ans: ['leg'], hint: ['매뉴얼을 다시 읽어 봐요 📖 “…다리를 한 조각씩 건져 혈작업을 진행하고…”', '정답: 🍗 다리 — 혈작업은 다리에 해요! 손가락이 가리키는 곳을 눌러요.'] });
     if (id === 'leg') break;
     mistake('혈작업은 ‘다리’에 진행해요.', { obj: first[id].w }); await wiggle(first[id].w, .03);
   }
@@ -3118,7 +3122,7 @@ async function step5() {
   for (let li = 0; li < legs.length; li++) {
     if (li > 0) {
       await flyTo('s3pick', 3, .9); P.phase('⑦ 남은 <b>다리</b>도 건지기'); P.clear(); P.fb('');
-      await choosePin([{ id: 'leg2', label: '다리 건지기', icon: '🥢', obj: legs[li].w, off: [0, .3, 0] }]);
+      await choosePin([{ id: 'leg2', label: '다리 건지기', icon: '🥢', obj: legs[li].w, off: [0, .3, 0] }], { key: 'leg2', hint: ['정답: 🥢 다리 건지기를 눌러 남은 다리도 건져 혈작업해요!'] });
     }
     await legWork(s, legs[li], li + 1, legs.length);
   }
@@ -3150,7 +3154,7 @@ async function step6() {
   await flyTo('s4', 4, 2.2);
   let tries = 0;
   for (; ;) {
-    const a = await P.ask([{ id: 't', title: '기름떨이 시간', opts: [{ v: 60, t: '1분' }, { v: 90, t: '1분 30초' }, { v: 120, t: '2분' }] }], '선택 확인', { key: 's6ask', hint: ['제목을 봐요 📖 “기름떨이 (1분 30초)”', '정답은 1분 30초예요.'] });
+    const a = await P.ask([{ id: 't', title: '기름떨이 시간', opts: [{ v: 60, t: '1분' }, { v: 90, t: '1분 30초' }, { v: 120, t: '2분' }] }], '선택 확인', { key: 's6ask', ans: { t: 90 }, hint: ['제목을 봐요 📖 “기름떨이 (1분 30초)”', '정답: 1분 30초 ⏱'] });
     if (a.t === '90') { await P.askRight(); break; }
     tries++; mistake(tries >= 2 ? '기름떨이는 1분 30초예요.' : (a.t === '60' ? '기름이 덜 빠져요.' : '너무 길어요.') + ' 다시 선택해 보세요.', { obj: s.rack });
     await P.askWrong();
@@ -3158,7 +3162,7 @@ async function step6() {
   good(300, { obj: s.rack }); P.fb(''); s.setTimer(90, '기름떨이'); setFrac(.2);
   P.phase('② <b>기름떨이망</b>을 털어 기름 빼기'); const met = P.meter('남은 시간'); met.set(0, '01:30'); let remain = 90; const rw = wpos(s.rackPcs);
   await tapSeries({
-    n: 6, label: '💧 기름 털기 탭!', hold: true, pin: { id: 'drain', label: '기름 털기', icon: '💧', obj: s.rack, off: [0, .55, 0] },
+    n: 6, label: '💧 기름 털기 탭!', hold: true, hint: ['정답: 💧 기름 털기를 한 번 누르면 기름떨이망을 털어 기름을 빼요!'], pin: { id: 'drain', label: '기름 털기', icon: '💧', obj: s.rack, off: [0, .55, 0] },
     onTap: (k, n) => {
       sfx.drip(); sfx.whoosh(); const y0 = s.rack.position.y; anim(.3, (e, rr) => { s.rack.position.y = y0 + Math.sin(rr * Math.PI) * .045; s.rack.rotation.z = Math.sin(rr * Math.PI * 3) * .02 * (1 - rr); }, ease.lin);
       for (let q = 0; q < 6; q++) setTimeout(() => { const p = pcs[Math.floor(rnd(pcs.length))]; const w = wpos(p); fx.oilDrops(w.x, w.y, w.z, 3); sfx.drip(); }, q * 70 * TS);
@@ -3180,7 +3184,7 @@ async function step7() {
   await flyTo('s5', 5, 2.2);
   const lab = { big: '대박스 + 대트레이', mid: '중박스 + 중트레이', combo: '대박스 + 콤보트레이' };
   for (; ;) {
-    const id = await choosePin(s.order.map(k => ({ id: k, label: lab[k], icon: '📦', obj: s.conts[k].g, off: [0, .4, .1], cls: 'alt' })), { key: 's7box', quiz: true, ans: ['big'], hint: ['시작 카드의 📌 노트에 한마리에 맞는 크기가 적혀 있어요! 위의 📖 매뉴얼 버튼으로 다시 볼 수 있어요.', '정답은 친환경치킨박스(대) + 친환경트레이(대)예요!'] });
+    const id = await choosePin(s.order.map(k => ({ id: k, label: lab[k], icon: '📦', obj: s.conts[k].g, off: [0, .4, .1], cls: 'alt' })), { key: 's7box', quiz: true, ans: ['big'], hint: ['시작 카드의 📌 노트에 한마리에 맞는 크기가 적혀 있어요! 위의 📖 매뉴얼 버튼으로 다시 볼 수 있어요.', '정답: 📦 대박스 + 대트레이 (친환경치킨박스(대) + 친환경트레이(대))'] });
     if (id === 'big') break;
     mistake(id === 'mid' ? '중박스/중트레이는 ‘윙’ 규격이에요. 한마리는 대박스 + 대트레이!' : '콤보트레이는 콤보 · 3&7 콤보 · 스틱용이에요. 한마리는 대박스 + 대트레이!', { obj: s.conts[id].g });
     await wiggle(s.conts[id].g, .05);
@@ -3191,7 +3195,7 @@ async function step7() {
   P.fb('박스 안에 트레이(대)를 깔아요.', 'ok'); C.tray.visible = true; C.tray.position.y = ty0 + .95; sfx.whoosh(); await anim(.8, e => { C.tray.position.y = lerp(ty0 + .95, ty0, e); C.tray.rotation.z = (1 - e) * .25; }, ease.bounce); C.tray.rotation.z = 0; sfx.thud(); shake(.15); await wait(.35);
   [s.plate, B.g, s.sauceA, s.sauceB, s.mu].forEach(o => { o.visible = true; o.scale.setScalar(.01); });
   await Promise.all([s.plate, B.g, s.sauceA, s.sauceB, s.mu].map((o, i) => wait(i * .12).then(() => popIn(o, 1, .45)))); sfx.thud();
-  const need = async (okId, make, msgs) => { for (; ;) { const sp = make(); const id = await choosePin(sp, { key: 'need_' + okId, point: [okId], ans: [okId], hint: ['손가락이 가리키는 것을 눌러요!'] }); if (id === okId) return; const o = sp.find(x => x.id === id).obj; mistake(msgs[id], { obj: o }); await wiggle(o, .03); } };
+  const need = async (okId, make, msgs) => { for (; ;) { const sp = make(); const id = await choosePin(sp, { key: 'need_' + okId, point: [okId], ans: [okId], hint: ['정답: 지금은 ' + ({ chicken: '🍗 치킨 담기', lid: '📦 뚜껑 닫기', seal: '🏷️ 안심스티커 붙이기', bag: '🛍️ 포장지에 넣기' }[okId] || '손가락이 가리키는 것') + ' 차례예요! (치킨 담기 → 뚜껑 닫기 → 안심스티커 → 포장지)'] }); if (id === okId) return; const o = sp.find(x => x.id === id).obj; mistake(msgs[id], { obj: o }); await wiggle(o, .03); } };
   // ② chicken -> box
   P.phase('② <b>🍗 치킨 담기</b>'); setFrac(.2);
   await need('chicken', () => [{ id: 'chicken', label: '치킨 담기', icon: '🍗', obj: s.plate, off: [0, .42, 0] }, { id: 'lid', label: '뚜껑 닫기', icon: '📦', obj: C.g, at: 'top', off: [0, .66, -.12], cls: 'alt sm' }], { lid: '먼저 치킨을 박스에 담아요. 뚜껑은 다 담은 뒤에 닫아요.' });
@@ -3218,7 +3222,7 @@ async function step7() {
   const itemSay = n => '⑥ <b>치킨무 · 맵싸\u00a0소스 · 파싹소스</b> 담기 (' + n + '/3)'; P.phase(itemSay(0));
   const items = { mu: s.mu, sa: s.sauceA, sb: s.sauceB }, lbl = { mu: '치킨무 1ea', sa: '맵싸\u00a0소스 1ea', sb: '파싹소스 1ea' }, dst = { mu: [-.3, .357, -.06], sa: [.2, .334, .14], sb: [.42, .334, -.12] }, remain = ['mu', 'sa', 'sb']; let placed = 0;
   while (remain.length) {
-    const id = await choosePin(remain.map(k => ({ id: k, label: lbl[k], icon: '', obj: items[k], off: [0, .34, 0] })), { key: 's7items', point: [remain[0]], hint: ['손가락이 가리키는 것부터 눌러요. 순서는 상관없어요!'] });
+    const id = await choosePin(remain.map(k => ({ id: k, label: lbl[k], icon: '', obj: items[k], off: [0, .34, 0] })), { key: 's7items', point: [remain[0]], hint: ['손가락이 가리키는 것부터 눌러요. 순서는 상관없어요!', '정답: 치킨무 1ea · 맵싸 소스 1ea · 파싹소스 1ea를 모두 담아요 (순서 무관)'] });
     remain.splice(remain.indexOf(id), 1); sfx.whoosh(); P.fb('');
     const o = items[id], d = dst[id]; B.g.attach(o); await arcMove(o, new THREE.Vector3(d[0], d[1], d[2]), .6, .6, ease.io, { x: 0, y: o.rotation.y, z: 0 });
     sfx.thud(); placed++; P.phase(itemSay(placed)); dots.set(4 + placed); good(150, { obj: B.g }); setFrac(.62 + placed * .06);
@@ -3226,7 +3230,7 @@ async function step7() {
   fx.sparkle(wpos(B.g).x, CY + .6, wpos(B.g).z, 20); await wait(.5);
   // ⑦ call the rider
   P.phase('⑦ 🛵 <b>라이더 호출</b>'); P.fb('포장 완료! 이제 배달 라이더를 불러요.', 'ok'); setFrac(.82);
-  await choosePin([{ id: 'call', label: '라이더 호출', icon: '🛵', obj: B.g, off: [0, .95, 0] }]);
+  await choosePin([{ id: 'call', label: '라이더 호출', icon: '🛵', obj: B.g, off: [0, .95, 0] }], { key: 's7call', hint: ['정답: 🛵 라이더 호출을 눌러요!'] });
   P.fb(''); good(200, { obj: B.g }); sfx.bell(); toast('🛵 라이더 배정 중…', 'ok', 1800);
   const R = s.rider, rg = R.g, spin = d => { R.wF.rotation.z -= d / .17; R.wR.rotation.z -= d / .17; };
   rg.visible = true; rg.position.set(4.5, 0, 1.78); rg.scale.setScalar(.01); R.lid.rotation.z = 0;
@@ -3238,7 +3242,7 @@ async function step7() {
   sfx.horn(); rg.rotation.z = 0; dots.set(7);
   // ⑧ hand it over
   P.phase('⑧ 🤝 <b>라이더에게 전달</b>');
-  await choosePin([{ id: 'give', label: '라이더에게 전달', icon: '🤝', obj: B.g, off: [0, .95, 0] }]);
+  await choosePin([{ id: 'give', label: '라이더에게 전달', icon: '🤝', obj: B.g, off: [0, .95, 0] }], { key: 's7give', hint: ['정답: 🤝 라이더에게 전달을 눌러요!'] });
   P.fb(''); good(300, { obj: B.g });
   anim(.45, k => { R.armR.rotation.set(0, -1.1 * k, -.28 + .2 * k); }); anim(.4, k => { R.lid.rotation.z = 1.35 * k; }, ease.back);
   await wait(.35); sfx.whoosh();
