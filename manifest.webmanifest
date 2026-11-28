@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "bhc 교육 게임",
+  "short_name": "bhc 교육게임",
+  "description": "알싹킹 · 뿌링클 · 버거 조리 교육 게임을 한 앱에서 골라 연습해요",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "./?source=app",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff8e4",
+  "theme_color": "#10213a",
+  "icons": [
+    { "src": "hub/icons/hub-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "hub/icons/hub-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "hub/icons/hub-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

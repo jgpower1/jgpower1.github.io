@@ -3290,12 +3290,13 @@ const A2 = (() => {
   const SHARE = svg('<path d="M12 15V3M8 7l4-4 4 4M6 10H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-1"/>');
   const PLUS = svg('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/>');
   const pageUrl = () => location.origin + location.pathname;
+  const hubbed = () => document.documentElement.classList.contains('from-hub') || /[?&]from=hub(&|#|$)/.test(location.search);   // 게임 목록(허브) 앱에서 열렸으면 이 게임의 설치 안내는 쉬어요
   const api = { ios, android, kakao, inapp, mobile, last: '', get offer() { return !!evt; }, show, openSheet, openReady, closeSheet, steps, install };
   let evt = window.__bip || null, lastFocus = null, finished = false, autoDone = false;
 
   /* 첫 화면 버튼: 설치 창이 준비되면 '📲 앱 바로 설치하기 · 탭 한 번이면 설치돼요' */
   function show() {
-    const ok = !!window.__PWA && !finished && !standalone() && (mobile || !!evt);
+    const ok = !!window.__PWA && !finished && !standalone() && !hubbed() && (mobile || !!evt);
     if (ok && !btn.dataset.ready) { $('a2hsIco').src = ICON; btn.dataset.ready = '1'; }
     btn.hidden = !ok; if (!ok) return;
     btn.classList.toggle('ready', !!evt);
@@ -3387,6 +3388,7 @@ const A2 = (() => {
     const t0 = Date.now();
     const tick = () => {
       if (autoDone || finished || standalone()) return;
+      if (hubbed()) { autoDone = true; show(); return; }
       if (!$('title').classList.contains('show')) { autoDone = true; return; }      // 게임을 시작했으면 띄우지 않아요
       const g = $('bhcGate'), gateOn = !!g && !g.hidden && g.getBoundingClientRect().height > 0 && getComputedStyle(g).display !== 'none';
       const busy = gateOn || [...document.querySelectorAll('.ovl.show')].some(o => o.id !== 'title') || $('startBtn').disabled;
@@ -3862,5 +3864,6 @@ window.__bhc = { S, SX, Pins, Coach, STEP_FNS, LOOK, setLook, camS, SHOTS, flyTo
 <div id="jgMark" aria-hidden="true">made by J.G</div>
 <style>#jgMark{position:fixed;top:calc(env(safe-area-inset-top,0px) + 1px);left:calc(env(safe-area-inset-left,0px) + 5px);z-index:2147483647;margin:0;padding:0;font:700 10px/11px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.05em;color:rgba(255,255,255,.88);text-shadow:0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.45);opacity:.72;pointer-events:none;user-select:none;-webkit-user-select:none;white-space:nowrap;display:block!important;visibility:visible!important}</style>
 <script>(function(){function m(){var e=document.getElementById('jgMark');if(!e){e=document.createElement('div');e.id='jgMark';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}if(e.textContent!=='made by J.G')e.textContent='made by J.G';}setInterval(m,3000);})();</script>
+<script src="../hub/link.js" defer></script>
 </body>
 </html>

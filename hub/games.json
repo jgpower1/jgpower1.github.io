@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "categories": [
+    { "id": "chicken", "name": "치킨 조리", "icon": "🍗", "desc": "물기제거부터 포장까지 3D 주방에서 연습해요" },
+    { "id": "burger", "name": "버거", "icon": "🍔", "desc": "소스 계량 · 조립 · 랩핑을 연습해요" }
+  ],
+  "games": [
+    {
+      "id": "alssa3", "cat": "chicken", "title": "알싹킹 마스터 키친", "ver": "3",
+      "url": "alssa3/", "img": "hub/img/alssa3.jpg",
+      "desc": "배터링 · 후라잉 · 혈작업 · 크랙킹 · 포장까지 8단계",
+      "tags": ["3D 조리", "8단계", "100점 만점"],
+      "record": { "type": "3d", "key": "bhc3d_alssa3_best" }
+    },
+    {
+      "id": "bburinkle3", "cat": "chicken", "title": "뿌링클 마스터 키친", "ver": "3",
+      "url": "bburinkle3/", "img": "hub/img/bburinkle3.jpg",
+      "desc": "배터링 · 후라잉 · 혈작업 · 시즈닝 · 포장까지 8단계",
+      "tags": ["3D 조리", "8단계", "100점 만점"],
+      "record": { "type": "3d", "key": "bhc3d_bur3_best" }
+    },
+    {
+      "id": "burger3", "cat": "burger", "title": "버거 빌드 타이쿤", "ver": "3",
+      "url": "burger3/", "img": "hub/img/burger3.jpg",
+      "desc": "bhc 버거 4종 소스 계량 · 조립 · 랩핑",
+      "tags": ["영업 DAY", "연습 모드", "100점 만점"],
+      "record": { "type": "burger", "key": "bhc-burger-build-tycoon-v1" }
+    }
+  ]
+}

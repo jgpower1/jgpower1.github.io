@@ -1,8 +1,328 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><meta http-equiv="refresh" content="0; url=alssa2/">
-<title>알싹킹 마스터 키친</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font:700 17px system-ui,sans-serif;background:#fff8e4;color:#10213a;text-align:center;padding:24px}a{color:#d9480f}</style></head>
-<body><p>알싹킹 교육 게임이 새 버전으로 바뀌었어요.<br><a href="alssa2/">새 버전 열기 ▶</a></p>
-<script>try{localStorage.removeItem('bhc3d_best')}catch(e){}</script>
-<script>location.replace('alssa2/' + location.search);</script></body></html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="author" content="J.G">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>bhc 교육 게임</title>
+<meta name="description" content="알싹킹 · 뿌링클 · 버거 조리 교육 게임을 한 앱에서 골라 연습해요">
+<meta name="theme-color" content="#10213a">
+<meta name="color-scheme" content="light">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="hub/icons/hub-32.png">
+<link rel="apple-touch-icon" href="hub/icons/hub-apple-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="bhc 교육게임">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>window.__PWA=true;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;window.dispatchEvent(new Event('bhc-bip'))});</script>
+<style>
+:root{--ink:#10213a;--ink2:#2c4166;--ink3:#5a6c88;--cream:#fff8e4;--cream2:#ffeec2;--paper:#fffdf6;--sand:#e9dcae;--orange:#ff7a1a;--orange2:#ffa24d;--orange3:#c24e00;--yellow:#ffc83d;--yellow2:#fff0a8;--green3:#23762a;
+  --font:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;background:var(--cream);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;word-break:keep-all;
+  background-image:radial-gradient(rgba(16,33,58,.07) 1.2px,transparent 1.3px);background-size:22px 22px}
+img{max-width:100%;display:block}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:calc(var(--sat) + 22px) max(16px,var(--sar)) calc(var(--sab) + 28px) max(16px,var(--sal))}
+
+/* 머리 */
+.top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.top img{width:64px;height:64px;border-radius:18px;flex:none;filter:drop-shadow(0 3px 0 rgba(16,33,58,.25))}
+.top h1{margin:0;font-size:clamp(25px,6.4vw,34px);line-height:1.15;font-weight:900;letter-spacing:-.03em}
+.top p{margin:3px 0 0;font-size:16px;font-weight:700;color:var(--ink3)}
+
+/* 설치 안내 띠 */
+.inst{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 16px;padding:12px 14px;border-radius:20px;border:3px solid var(--ink);background:var(--yellow);box-shadow:0 5px 0 var(--ink);text-align:left}
+.inst[hidden]{display:none}
+.inst .ic{font-size:28px;flex:none}
+.inst b{display:block;font-size:17px;font-weight:900}
+.inst small{display:block;font-size:14px;font-weight:700;color:var(--ink2)}
+.inst .go{margin-left:auto;flex:none;padding:10px 16px;border-radius:99px;background:var(--ink);color:#fff;font-weight:900;font-size:15px;white-space:nowrap}
+.inst:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+.inst.done{background:#c9f2d3}
+
+/* 종류 고르기 */
+.tabs{position:sticky;top:0;z-index:5;display:flex;gap:7px;overflow-x:auto;margin:0 calc(-1 * max(16px,var(--sal))) 6px;padding:calc(var(--sat) + 8px) max(16px,var(--sar)) 12px max(16px,var(--sal));
+  background:linear-gradient(var(--cream) 78%,rgba(255,248,228,0));scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:48px;padding:0 14px;border-radius:99px;border:3px solid var(--ink);background:var(--paper);font-size:16px;font-weight:900;box-shadow:0 4px 0 var(--ink)}
+.tab em{font-style:normal;font-size:13px;font-weight:900;min-width:24px;height:24px;padding:0 7px;border-radius:99px;display:inline-grid;place-items:center;background:var(--cream2)}
+.tab[aria-pressed="true"]{background:var(--orange);color:var(--ink)}
+.tab[aria-pressed="true"] em{background:var(--paper)}
+.tab:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tab:focus-visible,.card:focus-visible,.inst:focus-visible{outline:3px solid var(--orange3);outline-offset:3px}
+
+/* 게임 목록 */
+.sec{margin:14px 0 26px}
+.sec[hidden]{display:none}
+.sec h2{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 0 4px;font-size:22px;font-weight:900;letter-spacing:-.02em}
+.sec h2 span{font-size:15px;font-weight:800;color:var(--ink3)}
+.sec .sd{margin:0 0 12px;font-size:15px;font-weight:700;color:var(--ink3)}
+.grid{display:grid;grid-template-columns:1fr;gap:18px}
+@media (min-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1080px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{display:flex;flex-direction:column;min-width:0;border-radius:26px;border:3px solid var(--ink);background:var(--paper);box-shadow:0 7px 0 var(--ink);text-decoration:none;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.card:active{transform:translateY(4px);box-shadow:0 3px 0 var(--ink)}
+.card figure{position:relative;margin:0;aspect-ratio:900/415;background:#2a2420;border-bottom:3px solid var(--ink)}
+.card figure img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:10px;left:10px;padding:5px 11px;border-radius:99px;background:var(--ink);color:var(--yellow);font-size:13px;font-weight:900;letter-spacing:.06em}
+.badge.recent{left:auto;right:10px;background:var(--yellow);color:var(--ink);border:2.5px solid var(--ink);letter-spacing:0}
+.card .bd{display:flex;flex-direction:column;gap:8px;padding:14px 16px 16px;flex:1}
+.card h3{margin:0;font-size:22px;line-height:1.25;font-weight:900;letter-spacing:-.02em}
+.card .ds{margin:0;font-size:15.5px;font-weight:700;color:var(--ink2)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.tags li{padding:3px 10px;border-radius:99px;background:var(--cream2);border:2px solid var(--sand);font-size:13px;font-weight:800;color:var(--ink2)}
+.rec{font-size:15px;font-weight:800;color:var(--green3)}
+.rec.none{color:var(--ink3);font-weight:700}
+.play{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border-radius:99px;border:3px solid var(--ink);background:var(--orange);font-size:19px;font-weight:900;box-shadow:0 4px 0 var(--ink)}
+.msg{padding:26px 18px;border-radius:22px;border:3px dashed var(--ink3);background:var(--paper);text-align:center;font-weight:800}
+.msg button{margin-top:12px;min-height:48px;padding:0 20px;border-radius:99px;border:3px solid var(--ink);background:var(--orange);font-weight:900}
+.foot{margin-top:8px;text-align:center;font-size:14px;font-weight:700;color:var(--ink3)}
+.foot b{color:var(--ink2)}
+
+/* 설치 창 */
+.ovl{position:fixed;inset:0;z-index:50;display:none;align-items:flex-end;justify-content:center;padding:16px calc(16px + var(--sar)) calc(16px + var(--sab)) calc(16px + var(--sal));background:rgba(16,33,58,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.ovl.show{display:flex}
+@media (min-width:600px){.ovl{align-items:center}}
+.sheet{width:min(440px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;padding:20px 20px 18px;border-radius:26px;background:var(--cream);border:3px solid var(--ink);box-shadow:0 8px 0 var(--ink);animation:up .28s ease-out}
+@keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}.card{transition:none}}
+.sheet .eb{font-size:12px;font-weight:900;letter-spacing:.3em;color:var(--orange3)}
+.sheet h3{margin:2px 0 10px;font-size:22px;font-weight:900;letter-spacing:-.02em}
+.app{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:16px;background:var(--paper);border:3px solid var(--ink);margin-bottom:10px}
+.app img{width:56px;height:56px;border-radius:14px;flex:none}
+.app b{display:block;font-size:17px}
+.app small{font-size:12.5px;font-weight:700;color:var(--ink3)}
+.warn{margin:0 0 10px;padding:9px 12px;border-radius:12px;background:var(--yellow2);border:2.5px solid var(--ink);font-size:14px;font-weight:800;line-height:1.5}
+.warn[hidden]{display:none}
+.steps{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:9px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:11px;align-items:flex-start;font-size:15px;line-height:1.45;font-weight:700}
+.steps li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--orange);border:2.5px solid var(--ink);font-weight:900;font-size:13px}
+.steps b{color:var(--orange3)}
+.steps em{display:block;margin-top:2px;font-style:normal;font-size:13px;color:var(--ink3)}
+.steps svg{width:1.2em;height:1.2em;vertical-align:-.22em;margin:0 2px;color:#0e6aa3}
+.url{margin:-4px 0 12px;padding:8px 10px;border-radius:10px;background:#fff;border:2px dashed var(--ink3);font-size:13px;word-break:break-all}
+.url[hidden]{display:none}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btns button{flex:1 1 110px;min-height:52px;padding:0 14px;border-radius:99px;font-weight:900;font-size:16px;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);background:var(--paper)}
+.btns .pri{background:var(--orange);flex-basis:100%}
+.btns button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img src="hub/icons/hub-192.png" alt="" width="64" height="64">
+    <div><h1>bhc 교육 게임</h1><p>메뉴를 골라 바로 연습해요</p></div>
+  </header>
+
+  <button type="button" class="inst" id="inst" hidden>
+    <span class="ic" aria-hidden="true">📲</span>
+    <span><b id="instB">핸드폰에 설치하기</b><small id="instS">아이콘 하나로 모든 게임을 열어요</small></span>
+    <span class="go" id="instGo">설치</span>
+  </button>
+
+  <nav class="tabs" id="tabs" aria-label="게임 종류"></nav>
+  <main id="list" aria-live="polite"><p class="msg">게임 목록을 불러오는 중이에요…</p></main>
+
+  <footer class="foot">
+    <p>새 교육 게임이 나오면 <b>이곳에 계속 추가</b>돼요.</p>
+    <p>교육용 시뮬레이션 · 표준 용량 · 온도 · 시간은 매뉴얼 기준이에요</p>
+  </footer>
+</div>
+
+<div class="ovl" id="ovl" role="dialog" aria-modal="true" aria-labelledby="shT">
+  <div class="sheet" id="sheet">
+    <div class="eb">앱 설치</div>
+    <h3 id="shT">핸드폰에 설치할까요?</h3>
+    <div class="app"><img src="hub/icons/hub-192.png" alt="" width="56" height="56"><span><b>bhc 교육게임</b><small>홈 화면에 이렇게 생겨요 · 모든 게임이 이 앱 하나에</small></span></div>
+    <p class="warn" id="shW" hidden></p>
+    <ol class="steps" id="shSteps"></ol>
+    <p class="url" id="shU" hidden></p>
+    <div class="btns" id="shBtns"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } } };
+  try { localStorage.removeItem('bhc3d_best'); } catch (e) { }                          // 아주 예전(1버전) 기록 정리
+  try { sessionStorage.removeItem('bhc_hub'); } catch (e) { }
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ---------- 내 기록: 게임마다 저장 방식이 달라 종류별로 읽어요 ---------- */
+  function record(g) {
+    const r = g.record || {}; const raw = r.key ? ls.get(r.key) : null; if (!raw) return null;
+    let o; try { o = JSON.parse(raw); } catch (e) { return null; }
+    if (r.type === '3d') return o && typeof o.pt === 'number' && o.pt >= 0 ? '🏆 내 최고 ' + o.pt + '점' + (o.grade ? ' · ' + o.grade + '등급' : '') : null;
+    if (r.type === 'burger') {
+      const vals = Object.values((o && o.bestPt) || {}).filter(v => typeof v === 'number'), u = (o && o.unlocked) || 1;
+      if (!vals.length) return u > 1 ? '🔓 DAY ' + u + '까지 열렸어요' : null;
+      return '🏆 내 최고 ' + Math.max.apply(null, vals) + '점' + (u > 1 ? ' · DAY ' + u + '까지' : '');
+    }
+    return null;
+  }
+
+  /* ---------- 목록 그리기: hub/games.json 에 게임을 더하면 여기에 자동으로 나와요 ---------- */
+  let DATA = null, cur = ls.get('bhc_hub_tab') || 'all';
+  function cardHTML(g, last) {
+    const href = g.url + (g.url.indexOf('?') >= 0 ? '&' : '?') + 'from=hub', rec = record(g);
+    return '<a class="card" href="' + esc(href) + '" data-id="' + esc(g.id) + '" aria-label="' + esc(g.title + (g.ver ? ' ' + g.ver + '버전' : '') + ' 시작하기') + '">' +
+      '<figure><img src="' + esc(g.img) + '" alt="" width="900" height="415" loading="lazy" decoding="async">' +
+      (g.ver ? '<span class="badge">VER.' + esc(g.ver) + '</span>' : '') + (last ? '<span class="badge recent">최근에 했어요</span>' : '') + '</figure>' +
+      '<div class="bd"><h3>' + esc(g.title) + '</h3>' + (g.desc ? '<p class="ds">' + esc(g.desc) + '</p>' : '') +
+      (g.tags && g.tags.length ? '<ul class="tags">' + g.tags.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>' : '') +
+      '<div class="rec' + (rec ? '' : ' none') + '">' + esc(rec || '아직 기록이 없어요 · 첫 도전을 해 보세요!') + '</div>' +
+      '<span class="play" aria-hidden="true">▶ 시작하기</span></div></a>';
+  }
+  function render() {
+    const cats = DATA.categories || [], games = DATA.games || [], last = ls.get('bhc_hub_last');
+    const used = cats.filter(c => games.some(g => g.cat === c.id));
+    if (cur !== 'all' && !used.some(c => c.id === cur)) cur = 'all';
+    $('tabs').innerHTML = '<button type="button" class="tab" data-cat="all" aria-pressed="' + (cur === 'all') + '">전체 <em>' + games.length + '</em></button>' +
+      used.map(c => '<button type="button" class="tab" data-cat="' + esc(c.id) + '" aria-pressed="' + (cur === c.id) + '">' + esc((c.icon ? c.icon + ' ' : '') + c.name) + ' <em>' + games.filter(g => g.cat === c.id).length + '</em></button>').join('');
+    $('list').innerHTML = used.map(c => {
+      const gs = games.filter(g => g.cat === c.id);
+      return '<section class="sec" data-cat="' + esc(c.id) + '"' + (cur !== 'all' && cur !== c.id ? ' hidden' : '') + '>' +
+        '<h2>' + esc((c.icon ? c.icon + ' ' : '') + c.name) + ' <span>' + gs.length + '개</span></h2>' + (c.desc ? '<p class="sd">' + esc(c.desc) + '</p>' : '') +
+        '<div class="grid">' + gs.map(g => cardHTML(g, g.id === last)).join('') + '</div></section>';
+    }).join('') || '<p class="msg">아직 등록된 게임이 없어요.</p>';
+  }
+  $('tabs').addEventListener('click', e => {
+    const b = e.target.closest('.tab'); if (!b) return;
+    cur = b.dataset.cat; ls.set('bhc_hub_tab', cur);
+    document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-pressed', String(t === b)));
+    document.querySelectorAll('.sec').forEach(s => { s.hidden = cur !== 'all' && s.dataset.cat !== cur; });
+    b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  });
+  $('list').addEventListener('click', e => {
+    const a = e.target.closest('.card'); if (!a) return;
+    ls.set('bhc_hub_last', a.dataset.id); try { sessionStorage.setItem('bhc_hub', '1'); } catch (er) { }
+  });
+  async function load() {
+    try {
+      const r = await fetch('hub/games.json', { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status);
+      DATA = await r.json(); render();
+    } catch (e) {
+      $('list').innerHTML = '<div class="msg">게임 목록을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.<br><button type="button" id="retry">다시 불러오기</button></div>';
+      $('retry').addEventListener('click', load);
+    }
+  }
+  load();
+  addEventListener('pageshow', e => { if (e.persisted && DATA) render(); });            // 게임에서 '뒤로'로 돌아오면 기록 새로 고침
+
+  /* ---------- 앱 설치: 버튼 하나 (안드로이드 Chrome · 삼성 인터넷 · Edge) / 카톡 → Chrome · Safari로 열기 / 아이폰 3단계 ---------- */
+  const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/i.test(ua), kakao = /KAKAOTALK/i.test(ua), iosOther = ios && /CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);
+  const inapp = kakao || /NAVER\(inapp|NAVER\/|Instagram|FBAN|FBAV|FB_IAB|Line\/|DaumApps|BAND\/|everytimeApp|; wv\)/i.test(ua);
+  const mobile = ios || android || /Mobile/i.test(ua) || matchMedia('(pointer:coarse)').matches;
+  const standalone = () => ['standalone', 'fullscreen', 'minimal-ui'].some(m => matchMedia('(display-mode: ' + m + ')').matches) || navigator.standalone === true;
+  const svg = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+  const SHARE = svg('<path d="M12 15V3M8 7l4-4 4 4M6 10H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-1"/>');
+  const PLUS = svg('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/>');
+  const SEEN = 'bhc_hub_a2seen', pageUrl = () => location.origin + location.pathname;
+  const ovl = $('ovl'), box = $('shBtns'), inst = $('inst');
+  let evt = window.__bip || null, finished = false, autoDone = false, lastFocus = null;
+  window.__hubA2 = { get last() { return api.last; }, get offer() { return !!evt; } };
+  const api = { last: '' };
+  function showBtn() {
+    const ok = !finished && !standalone() && (mobile || !!evt);
+    inst.hidden = !ok; if (!ok) return;
+    $('instB').textContent = evt ? '앱 바로 설치하기' : '핸드폰에 설치하기';
+    $('instS').textContent = evt ? '탭 한 번이면 설치돼요' : inapp ? '먼저 ' + (ios ? 'Safari로' : 'Chrome으로') + ' 열어요' : ios ? '홈 화면에 추가 · 3단계' : '아이콘 하나로 모든 게임을 열어요';
+    $('instGo').textContent = evt ? '설치' : '방법 보기';
+  }
+  function done() {
+    if (finished) return; finished = true; closeSheet();
+    inst.hidden = false; inst.classList.add('done'); $('instB').textContent = '✓ 설치됐어요!'; $('instS').textContent = '홈 화면의 bhc 교육게임 아이콘으로 열어 보세요'; $('instGo').textContent = '확인';
+    setTimeout(() => { inst.hidden = true; }, 5000);
+  }
+  async function install() {
+    const e = evt; if (!e) { openGuide(); return; }
+    evt = null; window.__bip = null; closeSheet();
+    try { await e.prompt(); const r = await e.userChoice; if (r && r.outcome === 'accepted') { done(); return; } } catch (_) { }
+    showBtn();
+  }
+  function sheet(title, warn, list, btns) {
+    lastFocus = document.activeElement; $('shT').textContent = title;
+    const w = $('shW'); w.hidden = !warn; w.textContent = warn || '';
+    $('shSteps').innerHTML = list.map(s => '<li><span>' + s + '</span></li>').join(''); $('shU').hidden = true;
+    box.innerHTML = btns; ovl.classList.add('show');
+    const f = box.querySelector('button'); if (f) f.focus({ preventScroll: true });
+  }
+  function openReady() {
+    if (!evt) { openGuide(); return; }
+    sheet('핸드폰에 설치할까요?', '', ['아래 <b>📲 설치하기</b>를 눌러요', '뜨는 창에서 <b>설치</b>를 누르면 끝! 홈 화면에 아이콘이 생겨요', '앱 하나에서 <b>알싹킹 · 뿌링클 · 버거</b>를 모두 할 수 있어요'],
+      '<button type="button" class="pri" data-act="install">📲 설치하기</button><button type="button" data-act="close">나중에</button>');
+  }
+  function steps() {
+    if (inapp) return ios
+      ? ['앱 화면 모서리의 <b>⋯</b> 또는 <b>공유</b> ' + SHARE + ' 버튼을 눌러요', '<b>Safari로 열기</b>를 눌러요', 'Safari에서 <b>📲 핸드폰에 설치하기</b>를 다시 눌러 안내를 따라 주세요']
+      : ['아래 <b>Chrome에서 열기</b>를 눌러요', 'Chrome에서 설치 창이 뜨면 <b>설치</b>를 누르면 끝!<em>안 열리면 오른쪽 위 <b>⋮</b> → <b>다른 브라우저로 열기</b> → <b>Chrome</b></em>'];
+    if (ios) return [
+      iosOther ? '주소창 옆 <b>공유</b> 버튼 ' + SHARE + ' 을 눌러요<em>안 보이면 <b>⋯</b> 메뉴 안에 있어요.</em>' : 'Safari의 <b>공유</b> 버튼 ' + SHARE + ' 을 눌러요<em>아이폰은 화면 아래, 아이패드는 위쪽에 있어요. 안 보이면 <b>⋯</b> 메뉴 안에 있어요.</em>',
+      '목록을 위로 올려 <b>홈 화면에 추가</b> ' + PLUS + ' 를 눌러요', '오른쪽 위 <b>추가</b>를 누르면 홈 화면에 아이콘이 생겨요'];
+    return ['브라우저 오른쪽 위 <b>⋮</b> 메뉴(삼성 인터넷은 아래쪽 <b>≡</b>)를 눌러요', '<b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 눌러요', '<b>설치</b>·<b>추가</b>를 누르면 홈 화면에 아이콘이 생겨요'];
+  }
+  function openGuide() {
+    if (evt) { openReady(); return; }
+    const warn = inapp ? (kakao ? '카카오톡' : '앱') + ' 안의 화면에서는 설치할 수 없어요. ' + (ios ? 'Safari로' : 'Chrome으로') + ' 열어 주세요.' : '';
+    const btns = inapp && android ? '<button type="button" class="pri" data-act="chrome">Chrome에서 열기</button><button type="button" data-act="copy">링크 복사</button><button type="button" data-act="close">닫기</button>'
+      : kakao ? '<button type="button" class="pri" data-act="ext">Safari로 열기</button><button type="button" data-act="copy">링크 복사</button><button type="button" data-act="close">닫기</button>'
+      : inapp ? '<button type="button" class="pri" data-act="copy">링크 복사</button><button type="button" data-act="close">닫기</button>'
+      : android ? '<button type="button" class="pri" data-act="close">확인</button><button type="button" data-act="chrome">Chrome에서 열기</button>'
+      : '<button type="button" class="pri" data-act="close">확인</button>';
+    sheet(inapp ? '먼저 ' + (ios ? 'Safari로' : 'Chrome으로') + ' 열어 주세요' : '홈 화면에 아이콘 추가', warn, steps(), btns);
+  }
+  function closeSheet() { if (!ovl.classList.contains('show')) return; ovl.classList.remove('show'); if (lastFocus && lastFocus.focus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true }); }
+  function openChrome() { const u = new URL(pageUrl()); u.searchParams.set('install', '1'); api.last = 'intent://' + u.host + u.pathname + u.search + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(u.href) + ';end'; location.href = api.last; }
+  function openExternal() { api.last = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(pageUrl()); location.href = api.last; }
+  async function copyLink() {
+    const url = pageUrl(); let ok = false;
+    try { await navigator.clipboard.writeText(url); ok = true; } catch (_) { }
+    if (!ok) { const t = document.createElement('textarea'); t.value = url; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;left:-999px;top:0;opacity:0'; document.body.appendChild(t); t.select(); try { ok = document.execCommand('copy'); } catch (_) { } t.remove(); }
+    const b = box.querySelector('[data-act="copy"]'), u = $('shU'); u.hidden = false;
+    if (ok) { if (b) b.textContent = '복사됐어요 ✓'; u.textContent = '주소를 복사했어요. ' + (ios ? 'Safari' : 'Chrome') + ' 주소창에 붙여 넣어 주세요.'; } else u.textContent = url;
+  }
+  function autoOffer(force) {                                                           // 폰으로 처음 들어오면 한 번 (Chrome에서 열기로 오면 ?install=1 → 바로)
+    if (!mobile || standalone() || finished) return;
+    if (ls.get(SEEN) === '1' && !force) return;
+    const mark = () => { autoDone = true; ls.set(SEEN, '1'); }, t0 = Date.now();
+    const tick = () => {
+      if (autoDone || finished || standalone()) return;
+      if (ovl.classList.contains('show')) { setTimeout(tick, 600); return; }
+      if (evt) { mark(); openReady(); return; }
+      if (ios || inapp) { mark(); openGuide(); return; }
+      if (Date.now() - t0 < 9000) { setTimeout(tick, 500); return; }
+      autoDone = true;
+    };
+    setTimeout(tick, 900);
+  }
+  inst.addEventListener('click', () => { if (finished) { inst.hidden = true; return; } if (evt) install(); else openGuide(); });
+  ovl.addEventListener('click', e => { if (e.target === ovl) closeSheet(); });
+  box.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const a = b.dataset.act;
+    if (a === 'close') closeSheet(); else if (a === 'install') install(); else if (a === 'chrome') openChrome(); else if (a === 'ext') openExternal(); else if (a === 'copy') copyLink(); });
+  addEventListener('keydown', e => { if (!ovl.classList.contains('show')) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeSheet(); }
+    else if (e.key === 'Tab') { const bs = [...box.querySelectorAll('button')], n = bs.length, i = bs.indexOf(document.activeElement); if (!n) return; e.preventDefault(); bs[i < 0 ? (e.shiftKey ? n - 1 : 0) : (i + (e.shiftKey ? n - 1 : 1)) % n].focus(); } });
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); evt = e; showBtn(); });
+  addEventListener('bhc-bip', () => { evt = window.__bip || evt; showBtn(); });
+  addEventListener('appinstalled', () => { evt = null; done(); });
+  try { matchMedia('(display-mode: standalone)').addEventListener('change', showBtn); } catch (_) { }
+  if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => { }); });
+  showBtn(); autoOffer(new URLSearchParams(location.search).get('install') === '1');
+})();
+</script>
+<!-- made by J.G · 무단 복제 · 배포 금지 -->
+<div id="jgMark" aria-hidden="true">made by J.G</div>
+<style>#jgMark{position:fixed;top:calc(env(safe-area-inset-top,0px) + 1px);left:calc(env(safe-area-inset-left,0px) + 5px);z-index:2147483647;margin:0;padding:0;font:700 10px/11px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.05em;color:rgba(255,255,255,.88);text-shadow:0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.45);opacity:.72;pointer-events:none;user-select:none;-webkit-user-select:none;white-space:nowrap;display:block!important;visibility:visible!important}</style>
+<script>(function(){function m(){var e=document.getElementById('jgMark');if(!e){e=document.createElement('div');e.id='jgMark';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}if(e.textContent!=='made by J.G')e.textContent='made by J.G';}setInterval(m,3000);})();</script>
+</body>
+</html>
